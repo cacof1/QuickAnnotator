@@ -1,0 +1,2135 @@
+2021-07-26 08:55:00,036 [INFO] Initializing database
+2021-07-26 08:56:01,488 [INFO] Initializing database
+2021-07-26 08:57:32,263 [INFO] Initializing database
+2021-07-26 08:57:32,274 [INFO] SELECT CAST('test plain returns' AS VARCHAR(60)) AS anon_1
+2021-07-26 08:57:32,275 [INFO] ()
+2021-07-26 08:57:32,275 [INFO] SELECT CAST('test unicode returns' AS VARCHAR(60)) AS anon_1
+2021-07-26 08:57:32,275 [INFO] ()
+2021-07-26 08:57:32,275 [INFO] PRAGMA main.table_info("project")
+2021-07-26 08:57:32,275 [INFO] ()
+2021-07-26 08:57:32,276 [INFO] PRAGMA temp.table_info("project")
+2021-07-26 08:57:32,276 [INFO] ()
+2021-07-26 08:57:32,276 [INFO] PRAGMA main.table_info("image")
+2021-07-26 08:57:32,276 [INFO] ()
+2021-07-26 08:57:32,276 [INFO] PRAGMA temp.table_info("image")
+2021-07-26 08:57:32,276 [INFO] ()
+2021-07-26 08:57:32,276 [INFO] PRAGMA main.table_info("roi")
+2021-07-26 08:57:32,276 [INFO] ()
+2021-07-26 08:57:32,277 [INFO] PRAGMA temp.table_info("roi")
+2021-07-26 08:57:32,277 [INFO] ()
+2021-07-26 08:57:32,277 [INFO] PRAGMA main.table_info("job")
+2021-07-26 08:57:32,277 [INFO] ()
+2021-07-26 08:57:32,277 [INFO] PRAGMA temp.table_info("job")
+2021-07-26 08:57:32,277 [INFO] ()
+2021-07-26 08:57:32,278 [INFO] PRAGMA main.table_info("jobid_base")
+2021-07-26 08:57:32,278 [INFO] ()
+2021-07-26 08:57:32,278 [INFO] PRAGMA temp.table_info("jobid_base")
+2021-07-26 08:57:32,278 [INFO] ()
+2021-07-26 08:57:32,278 [INFO] 
+CREATE TABLE project (
+	id INTEGER NOT NULL, 
+	name TEXT NOT NULL, 
+	description TEXT, 
+	date DATETIME, 
+	train_ae_time DATETIME, 
+	make_patches_time DATETIME, 
+	iteration INTEGER, 
+	embed_iteration INTEGER, 
+	PRIMARY KEY (id), 
+	UNIQUE (name)
+)
+
+
+2021-07-26 08:57:32,279 [INFO] ()
+2021-07-26 08:57:32,282 [INFO] COMMIT
+2021-07-26 08:57:32,283 [INFO] 
+CREATE TABLE jobid_base (
+	id INTEGER NOT NULL, 
+	timestamp TEXT, 
+	procout TEXT, 
+	PRIMARY KEY (id)
+)
+
+
+2021-07-26 08:57:32,283 [INFO] ()
+2021-07-26 08:57:32,286 [INFO] COMMIT
+2021-07-26 08:57:32,286 [INFO] 
+CREATE TABLE image (
+	id INTEGER NOT NULL, 
+	"projId" INTEGER NOT NULL, 
+	name TEXT, 
+	path TEXT, 
+	height INTEGER, 
+	width INTEGER, 
+	ppixel INTEGER, 
+	npixel INTEGER, 
+	nobjects INTEGER, 
+	date DATETIME, 
+	make_patches_time DATETIME, 
+	superpixel_time DATETIME, 
+	superpixel_modelid INTEGER, 
+	PRIMARY KEY (id), 
+	FOREIGN KEY("projId") REFERENCES project (id), 
+	UNIQUE (path)
+)
+
+
+2021-07-26 08:57:32,286 [INFO] ()
+2021-07-26 08:57:32,289 [INFO] COMMIT
+2021-07-26 08:57:32,289 [INFO] 
+CREATE TABLE roi (
+	id INTEGER NOT NULL, 
+	"imageId" INTEGER NOT NULL, 
+	name TEXT, 
+	path TEXT, 
+	"testingROI" INTEGER, 
+	height INTEGER, 
+	width INTEGER, 
+	x INTEGER, 
+	y INTEGER, 
+	nobjects INTEGER, 
+	date DATETIME, 
+	PRIMARY KEY (id), 
+	FOREIGN KEY("imageId") REFERENCES image (id)
+)
+
+
+2021-07-26 08:57:32,289 [INFO] ()
+2021-07-26 08:57:32,291 [INFO] COMMIT
+2021-07-26 08:57:32,292 [INFO] 
+CREATE TABLE job (
+	id INTEGER NOT NULL, 
+	"projId" INTEGER NOT NULL, 
+	"imageId" INTEGER, 
+	cmd TEXT, 
+	params TEXT, 
+	status TEXT, 
+	retval TEXT, 
+	start_date DATETIME DEFAULT (CURRENT_TIMESTAMP), 
+	PRIMARY KEY (id), 
+	FOREIGN KEY("projId") REFERENCES project (id), 
+	FOREIGN KEY("imageId") REFERENCES image (id)
+)
+
+
+2021-07-26 08:57:32,292 [INFO] ()
+2021-07-26 08:57:32,294 [INFO] COMMIT
+2021-07-26 08:57:32,294 [INFO] pragma journal_mode=wal;
+2021-07-26 08:57:32,295 [INFO] ()
+2021-07-26 08:57:32,297 [INFO] BEGIN (implicit)
+2021-07-26 08:57:32,297 [INFO] SELECT name FROM sqlite_master WHERE type='table' and name like 'jobid_%' ORDER BY name
+2021-07-26 08:57:32,297 [INFO] ()
+2021-07-26 08:57:32,297 [INFO] Dropping jobid_table jobid_base
+2021-07-26 08:57:32,298 [INFO] DROP TABLE IF EXISTS jobid_base
+2021-07-26 08:57:32,298 [INFO] ()
+2021-07-26 08:57:32,300 [INFO] COMMIT
+2021-07-26 08:57:32,300 [INFO] Clearing stale jobs
+2021-07-26 08:57:32,307 [INFO] BEGIN (implicit)
+2021-07-26 08:57:32,307 [INFO] DELETE FROM job WHERE job.status = ?
+2021-07-26 08:57:32,307 [INFO] ('QUEUE',)
+2021-07-26 08:57:32,308 [INFO] DELETE FROM job WHERE job.status = ?
+2021-07-26 08:57:32,308 [INFO] ('RUNNING',)
+2021-07-26 08:57:32,308 [INFO] COMMIT
+2021-07-26 08:57:32,308 [INFO] Deleted 0 queued jobs.
+2021-07-26 08:57:32,322 [INFO] Starting up worker pool.
+2021-07-26 08:57:32,336 [WARNING]  * Running on all addresses.
+   WARNING: This is a development server. Do not use it in a production deployment.
+2021-07-26 08:57:32,336 [INFO]  * Running on http://192.168.178.148:5555/ (Press CTRL+C to quit)
+2021-07-26 08:57:35,100 [INFO] BEGIN (implicit)
+2021-07-26 08:57:35,102 [INFO] SELECT project.name AS project_name, project.date AS project_date, project.iteration AS project_iteration, project.description AS project_description, project.id AS project_id, project.id = image."projId" AS images, count(roi.id) AS "nROIs", count(roi.id) - ifnull(sum(roi."testingROI"), ?) AS "nTrainingROIs", count(distinct(image.id)) AS "nImages", ifnull(sum(distinct(image.nobjects)), ?) AS "nObjects" 
+FROM project LEFT OUTER JOIN image ON image."projId" = project.id LEFT OUTER JOIN roi ON roi."imageId" = image.id GROUP BY project.id
+2021-07-26 08:57:35,102 [INFO] (0, 0)
+2021-07-26 08:57:35,115 [INFO] 192.168.178.148 - - [26/Jul/2021 08:57:35] "GET / HTTP/1.1" 200 -
+2021-07-26 08:57:35,131 [INFO] 192.168.178.148 - - [26/Jul/2021 08:57:35] "GET /static/css/bootstrap.min.css HTTP/1.1" 200 -
+2021-07-26 08:57:35,138 [INFO] 192.168.178.148 - - [26/Jul/2021 08:57:35] "GET /static/js/angular.min.js HTTP/1.1" 200 -
+2021-07-26 08:57:35,143 [INFO] 192.168.178.148 - - [26/Jul/2021 08:57:35] "GET /static/css/jquery-ui.css HTTP/1.1" 200 -
+2021-07-26 08:57:35,143 [INFO] 192.168.178.148 - - [26/Jul/2021 08:57:35] "GET /static/css/bootstrap-dialog.min.css HTTP/1.1" 200 -
+2021-07-26 08:57:35,144 [INFO] 192.168.178.148 - - [26/Jul/2021 08:57:35] "GET /static/css/style.css HTTP/1.1" 200 -
+2021-07-26 08:57:35,146 [INFO] 192.168.178.148 - - [26/Jul/2021 08:57:35] "GET /static/js/jquery-3.5.0.js HTTP/1.1" 200 -
+2021-07-26 08:57:35,146 [INFO] 192.168.178.148 - - [26/Jul/2021 08:57:35] "GET /static/js/bootstrap.min.js HTTP/1.1" 200 -
+2021-07-26 08:57:35,148 [INFO] 192.168.178.148 - - [26/Jul/2021 08:57:35] "GET /static/js/bootstrap-dialog.min.js HTTP/1.1" 200 -
+2021-07-26 08:57:35,151 [INFO] 192.168.178.148 - - [26/Jul/2021 08:57:35] "GET /static/js/qa-utils.js HTTP/1.1" 200 -
+2021-07-26 08:57:35,152 [INFO] 192.168.178.148 - - [26/Jul/2021 08:57:35] "GET /static/js/jquery-ui.js HTTP/1.1" 200 -
+2021-07-26 08:57:35,154 [INFO] 192.168.178.148 - - [26/Jul/2021 08:57:35] "GET /static/js/projects.js HTTP/1.1" 200 -
+2021-07-26 08:57:35,434 [INFO] 192.168.178.148 - - [26/Jul/2021 08:57:35] "GET /favicon.ico HTTP/1.1" 200 -
+2021-07-26 08:58:26,227 [INFO] BEGIN (implicit)
+2021-07-26 08:58:26,228 [INFO] SELECT project.id AS project_id, project.name AS project_name, project.description AS project_description, project.date AS project_date, project.train_ae_time AS project_train_ae_time, project.make_patches_time AS project_make_patches_time, project.iteration AS project_iteration, project.embed_iteration AS project_embed_iteration 
+FROM project 
+WHERE project.name = ?
+ LIMIT ? OFFSET ?
+2021-07-26 08:58:26,228 [INFO] ('sdag', 1, 0)
+2021-07-26 08:58:26,231 [INFO] INSERT INTO project (name, description, date, train_ae_time, make_patches_time, iteration, embed_iteration) VALUES (?, ?, ?, ?, ?, ?, ?)
+2021-07-26 08:58:26,231 [INFO] ('sdag', '', '2021-07-26 07:58:26.000000', None, None, -1, -1)
+2021-07-26 08:58:26,231 [INFO] COMMIT
+2021-07-26 08:58:26,235 [INFO] BEGIN (implicit)
+2021-07-26 08:58:26,235 [INFO] SELECT project.id AS project_id, project.name AS project_name, project.description AS project_description, project.date AS project_date, project.train_ae_time AS project_train_ae_time, project.make_patches_time AS project_make_patches_time, project.iteration AS project_iteration, project.embed_iteration AS project_embed_iteration 
+FROM project 
+WHERE project.id = ?
+2021-07-26 08:58:26,235 [INFO] (1,)
+2021-07-26 08:58:26,237 [INFO] SELECT job.id AS job_id, job."projId" AS "job_projId", job."imageId" AS "job_imageId", job.cmd AS job_cmd, job.params AS job_params, job.status AS job_status, job.retval AS job_retval, job.start_date AS job_start_date 
+FROM job 
+WHERE ? = job."projId"
+2021-07-26 08:58:26,237 [INFO] (1,)
+2021-07-26 08:58:26,239 [INFO] SELECT image.id AS image_id, image."projId" AS "image_projId", image.name AS image_name, image.path AS image_path, image.height AS image_height, image.width AS image_width, image.ppixel AS image_ppixel, image.npixel AS image_npixel, image.nobjects AS image_nobjects, image.date AS image_date, image.make_patches_time AS image_make_patches_time, image.superpixel_time AS image_superpixel_time, image.superpixel_modelid AS image_superpixel_modelid 
+FROM image 
+WHERE ? = image."projId"
+2021-07-26 08:58:26,239 [INFO] (1,)
+2021-07-26 08:58:26,240 [INFO] ROLLBACK
+2021-07-26 08:58:26,241 [INFO] 192.168.178.148 - - [26/Jul/2021 08:58:26] "[35m[1mPOST /api/db/project HTTP/1.1[0m" 201 -
+2021-07-26 08:58:30,544 [INFO] Initializing database
+2021-07-26 08:58:30,551 [INFO] SELECT CAST('test plain returns' AS VARCHAR(60)) AS anon_1
+2021-07-26 08:58:30,551 [INFO] ()
+2021-07-26 08:58:30,552 [INFO] SELECT CAST('test unicode returns' AS VARCHAR(60)) AS anon_1
+2021-07-26 08:58:30,552 [INFO] ()
+2021-07-26 08:58:30,552 [INFO] PRAGMA main.table_info("project")
+2021-07-26 08:58:30,552 [INFO] ()
+2021-07-26 08:58:30,552 [INFO] PRAGMA main.table_info("image")
+2021-07-26 08:58:30,553 [INFO] ()
+2021-07-26 08:58:30,553 [INFO] PRAGMA main.table_info("roi")
+2021-07-26 08:58:30,553 [INFO] ()
+2021-07-26 08:58:30,553 [INFO] PRAGMA main.table_info("job")
+2021-07-26 08:58:30,553 [INFO] ()
+2021-07-26 08:58:30,553 [INFO] PRAGMA main.table_info("jobid_base")
+2021-07-26 08:58:30,554 [INFO] ()
+2021-07-26 08:58:30,554 [INFO] PRAGMA temp.table_info("jobid_base")
+2021-07-26 08:58:30,554 [INFO] ()
+2021-07-26 08:58:30,554 [INFO] 
+CREATE TABLE jobid_base (
+	id INTEGER NOT NULL, 
+	timestamp TEXT, 
+	procout TEXT, 
+	PRIMARY KEY (id)
+)
+
+
+2021-07-26 08:58:30,555 [INFO] ()
+2021-07-26 08:58:30,556 [INFO] COMMIT
+2021-07-26 08:58:30,556 [INFO] pragma journal_mode=wal;
+2021-07-26 08:58:30,556 [INFO] ()
+2021-07-26 08:58:30,557 [INFO] BEGIN (implicit)
+2021-07-26 08:58:30,557 [INFO] SELECT name FROM sqlite_master WHERE type='table' and name like 'jobid_%' ORDER BY name
+2021-07-26 08:58:30,557 [INFO] ()
+2021-07-26 08:58:30,558 [INFO] Dropping jobid_table jobid_base
+2021-07-26 08:58:30,558 [INFO] DROP TABLE IF EXISTS jobid_base
+2021-07-26 08:58:30,558 [INFO] ()
+2021-07-26 08:58:30,559 [INFO] COMMIT
+2021-07-26 08:58:30,559 [INFO] Clearing stale jobs
+2021-07-26 08:58:30,567 [INFO] BEGIN (implicit)
+2021-07-26 08:58:30,567 [INFO] DELETE FROM job WHERE job.status = ?
+2021-07-26 08:58:30,567 [INFO] ('QUEUE',)
+2021-07-26 08:58:30,568 [INFO] DELETE FROM job WHERE job.status = ?
+2021-07-26 08:58:30,568 [INFO] ('RUNNING',)
+2021-07-26 08:58:30,568 [INFO] COMMIT
+2021-07-26 08:58:30,568 [INFO] Deleted 0 queued jobs.
+2021-07-26 08:58:30,584 [INFO] Starting up worker pool.
+2021-07-26 08:58:38,989 [INFO] Initializing database
+2021-07-26 08:58:38,995 [INFO] SELECT CAST('test plain returns' AS VARCHAR(60)) AS anon_1
+2021-07-26 08:58:38,995 [INFO] ()
+2021-07-26 08:58:38,995 [INFO] SELECT CAST('test unicode returns' AS VARCHAR(60)) AS anon_1
+2021-07-26 08:58:38,995 [INFO] ()
+2021-07-26 08:58:38,995 [INFO] PRAGMA main.table_info("project")
+2021-07-26 08:58:38,995 [INFO] ()
+2021-07-26 08:58:38,996 [INFO] PRAGMA main.table_info("image")
+2021-07-26 08:58:38,996 [INFO] ()
+2021-07-26 08:58:38,996 [INFO] PRAGMA main.table_info("roi")
+2021-07-26 08:58:38,996 [INFO] ()
+2021-07-26 08:58:38,996 [INFO] PRAGMA main.table_info("job")
+2021-07-26 08:58:38,997 [INFO] ()
+2021-07-26 08:58:38,997 [INFO] PRAGMA main.table_info("jobid_base")
+2021-07-26 08:58:38,997 [INFO] ()
+2021-07-26 08:58:38,997 [INFO] PRAGMA temp.table_info("jobid_base")
+2021-07-26 08:58:38,997 [INFO] ()
+2021-07-26 08:58:38,998 [INFO] 
+CREATE TABLE jobid_base (
+	id INTEGER NOT NULL, 
+	timestamp TEXT, 
+	procout TEXT, 
+	PRIMARY KEY (id)
+)
+
+
+2021-07-26 08:58:38,998 [INFO] ()
+2021-07-26 08:58:39,002 [INFO] COMMIT
+2021-07-26 08:58:39,004 [INFO] pragma journal_mode=wal;
+2021-07-26 08:58:39,004 [INFO] ()
+2021-07-26 08:58:39,004 [INFO] BEGIN (implicit)
+2021-07-26 08:58:39,005 [INFO] SELECT name FROM sqlite_master WHERE type='table' and name like 'jobid_%' ORDER BY name
+2021-07-26 08:58:39,005 [INFO] ()
+2021-07-26 08:58:39,005 [INFO] Dropping jobid_table jobid_base
+2021-07-26 08:58:39,005 [INFO] DROP TABLE IF EXISTS jobid_base
+2021-07-26 08:58:39,005 [INFO] ()
+2021-07-26 08:58:39,008 [INFO] COMMIT
+2021-07-26 08:58:39,009 [INFO] Clearing stale jobs
+2021-07-26 08:58:39,015 [INFO] BEGIN (implicit)
+2021-07-26 08:58:39,016 [INFO] DELETE FROM job WHERE job.status = ?
+2021-07-26 08:58:39,016 [INFO] ('QUEUE',)
+2021-07-26 08:58:39,016 [INFO] DELETE FROM job WHERE job.status = ?
+2021-07-26 08:58:39,017 [INFO] ('RUNNING',)
+2021-07-26 08:58:39,017 [INFO] COMMIT
+2021-07-26 08:58:39,017 [INFO] Deleted 0 queued jobs.
+2021-07-26 08:58:39,030 [INFO] Starting up worker pool.
+2021-07-26 08:58:39,045 [WARNING]  * Running on all addresses.
+   WARNING: This is a development server. Do not use it in a production deployment.
+2021-07-26 08:58:39,046 [INFO]  * Running on http://192.168.178.148:5555/ (Press CTRL+C to quit)
+2021-07-26 08:58:41,314 [INFO] BEGIN (implicit)
+2021-07-26 08:58:41,315 [INFO] SELECT project.name AS project_name, project.date AS project_date, project.iteration AS project_iteration, project.description AS project_description, project.id AS project_id, project.id = image."projId" AS images, count(roi.id) AS "nROIs", count(roi.id) - ifnull(sum(roi."testingROI"), ?) AS "nTrainingROIs", count(distinct(image.id)) AS "nImages", ifnull(sum(distinct(image.nobjects)), ?) AS "nObjects" 
+FROM project LEFT OUTER JOIN image ON image."projId" = project.id LEFT OUTER JOIN roi ON roi."imageId" = image.id GROUP BY project.id
+2021-07-26 08:58:41,316 [INFO] (0, 0)
+2021-07-26 08:58:41,328 [INFO] 192.168.178.148 - - [26/Jul/2021 08:58:41] "GET / HTTP/1.1" 200 -
+2021-07-26 08:58:41,340 [INFO] 192.168.178.148 - - [26/Jul/2021 08:58:41] "[36mGET /static/css/bootstrap.min.css HTTP/1.1[0m" 304 -
+2021-07-26 08:58:41,343 [INFO] 192.168.178.148 - - [26/Jul/2021 08:58:41] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2021-07-26 08:58:41,343 [INFO] 192.168.178.148 - - [26/Jul/2021 08:58:41] "[36mGET /static/css/bootstrap-dialog.min.css HTTP/1.1[0m" 304 -
+2021-07-26 08:58:41,345 [INFO] 192.168.178.148 - - [26/Jul/2021 08:58:41] "[36mGET /static/css/jquery-ui.css HTTP/1.1[0m" 304 -
+2021-07-26 08:58:41,346 [INFO] 192.168.178.148 - - [26/Jul/2021 08:58:41] "[36mGET /static/js/angular.min.js HTTP/1.1[0m" 304 -
+2021-07-26 08:58:41,348 [INFO] 192.168.178.148 - - [26/Jul/2021 08:58:41] "[36mGET /static/js/jquery-3.5.0.js HTTP/1.1[0m" 304 -
+2021-07-26 08:58:41,349 [INFO] 192.168.178.148 - - [26/Jul/2021 08:58:41] "[36mGET /static/js/bootstrap.min.js HTTP/1.1[0m" 304 -
+2021-07-26 08:58:41,351 [INFO] 192.168.178.148 - - [26/Jul/2021 08:58:41] "[36mGET /static/js/bootstrap-dialog.min.js HTTP/1.1[0m" 304 -
+2021-07-26 08:58:41,352 [INFO] 192.168.178.148 - - [26/Jul/2021 08:58:41] "[36mGET /static/js/qa-utils.js HTTP/1.1[0m" 304 -
+2021-07-26 08:58:41,354 [INFO] 192.168.178.148 - - [26/Jul/2021 08:58:41] "[36mGET /static/js/jquery-ui.js HTTP/1.1[0m" 304 -
+2021-07-26 08:58:41,355 [INFO] 192.168.178.148 - - [26/Jul/2021 08:58:41] "[36mGET /static/js/projects.js HTTP/1.1[0m" 304 -
+2021-07-26 08:58:43,484 [INFO] BEGIN (implicit)
+2021-07-26 08:58:43,484 [INFO] SELECT project.id AS project_id, project.name AS project_name, project.description AS project_description, project.date AS project_date, project.train_ae_time AS project_train_ae_time, project.make_patches_time AS project_make_patches_time, project.iteration AS project_iteration, project.embed_iteration AS project_embed_iteration 
+FROM project 
+WHERE project.name = ?
+ LIMIT ? OFFSET ?
+2021-07-26 08:58:43,484 [INFO] ('sdag', 1, 0)
+2021-07-26 08:58:43,488 [INFO] SELECT image.id AS image_id, image."projId" AS "image_projId", image.name AS image_name, image.path AS image_path, image.height AS image_height, image.width AS image_width, image.date AS image_date, image.id = roi."imageId" AS rois, image.make_patches_time AS image_make_patches_time, image.npixel AS image_npixel, image.ppixel AS image_ppixel, image.nobjects AS image_nobjects, count(roi.id) AS "ROIs", count(roi.id) - ifnull(sum(roi."testingROI"), ?) AS "trainingROIs" 
+FROM image LEFT OUTER JOIN roi ON roi."imageId" = image.id 
+WHERE image."projId" = ? GROUP BY image.id
+2021-07-26 08:58:43,488 [INFO] (0, 1)
+2021-07-26 08:58:43,501 [INFO] ROLLBACK
+2021-07-26 08:58:43,502 [INFO] 192.168.178.148 - - [26/Jul/2021 08:58:43] "GET /sdag/images HTTP/1.1" 200 -
+2021-07-26 08:58:43,531 [INFO] 192.168.178.148 - - [26/Jul/2021 08:58:43] "[36mGET /static/css/bootstrap.min.css HTTP/1.1[0m" 304 -
+2021-07-26 08:58:43,532 [INFO] 192.168.178.148 - - [26/Jul/2021 08:58:43] "GET /static/css/dropzone.css HTTP/1.1" 200 -
+2021-07-26 08:58:43,533 [INFO] 192.168.178.148 - - [26/Jul/2021 08:58:43] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2021-07-26 08:58:43,536 [INFO] 192.168.178.148 - - [26/Jul/2021 08:58:43] "GET /static/css/basic.css HTTP/1.1" 200 -
+2021-07-26 08:58:43,537 [INFO] 192.168.178.148 - - [26/Jul/2021 08:58:43] "GET /static/css/imageselection.css HTTP/1.1" 200 -
+2021-07-26 08:58:43,540 [INFO] 192.168.178.148 - - [26/Jul/2021 08:58:43] "GET /static/css/logs.css HTTP/1.1" 200 -
+2021-07-26 08:58:43,540 [INFO] 192.168.178.148 - - [26/Jul/2021 08:58:43] "GET /static/css/modal.css HTTP/1.1" 200 -
+2021-07-26 08:58:43,542 [INFO] 192.168.178.148 - - [26/Jul/2021 08:58:43] "[36mGET /static/css/jquery-ui.css HTTP/1.1[0m" 304 -
+2021-07-26 08:58:43,546 [INFO] 192.168.178.148 - - [26/Jul/2021 08:58:43] "GET /static/js/projectPageScript.js HTTP/1.1" 200 -
+2021-07-26 08:58:43,546 [INFO] 192.168.178.148 - - [26/Jul/2021 08:58:43] "GET /static/js/dropzone.js HTTP/1.1" 200 -
+2021-07-26 08:58:43,548 [INFO] BEGIN (implicit)
+2021-07-26 08:58:43,549 [INFO] SELECT project.id AS project_id, project.name AS project_name, project.description AS project_description, project.date AS project_date, project.train_ae_time AS project_train_ae_time, project.make_patches_time AS project_make_patches_time, project.iteration AS project_iteration, project.embed_iteration AS project_embed_iteration 
+FROM project 
+WHERE project.name = ?
+ LIMIT ? OFFSET ?
+2021-07-26 08:58:43,550 [INFO] 192.168.178.148 - - [26/Jul/2021 08:58:43] "[36mGET /static/js/jquery-3.5.0.js HTTP/1.1[0m" 304 -
+2021-07-26 08:58:43,551 [INFO] 192.168.178.148 - - [26/Jul/2021 08:58:43] "[36mGET /static/js/angular.min.js HTTP/1.1[0m" 304 -
+2021-07-26 08:58:43,550 [INFO] ('sdag', 1, 0)
+2021-07-26 08:58:43,552 [INFO] 192.168.178.148 - - [26/Jul/2021 08:58:43] "[36mGET /static/js/bootstrap.min.js HTTP/1.1[0m" 304 -
+2021-07-26 08:58:43,554 [INFO] 192.168.178.148 - - [26/Jul/2021 08:58:43] "[36mGET /static/js/bootstrap-dialog.min.js HTTP/1.1[0m" 304 -
+2021-07-26 08:58:43,555 [INFO] 192.168.178.148 - - [26/Jul/2021 08:58:43] "[36mGET /static/js/qa-utils.js HTTP/1.1[0m" 304 -
+2021-07-26 08:58:43,560 [INFO] ROLLBACK
+2021-07-26 08:58:43,561 [INFO] 192.168.178.148 - - [26/Jul/2021 08:58:43] "[36mGET /static/js/jquery-ui.js HTTP/1.1[0m" 304 -
+2021-07-26 08:58:43,562 [INFO] 192.168.178.148 - - [26/Jul/2021 08:58:43] "GET /sdag/images/images-main HTTP/1.1" 200 -
+2021-07-26 08:58:43,708 [INFO] BEGIN (implicit)
+2021-07-26 08:58:43,709 [INFO] SELECT count(*) AS count_1 
+FROM image 
+WHERE image."projId" = ?
+2021-07-26 08:58:43,709 [INFO] ('1',)
+2021-07-26 08:58:43,710 [INFO] ROLLBACK
+2021-07-26 08:58:43,710 [INFO] 192.168.178.148 - - [26/Jul/2021 08:58:43] "GET /api/db/image?q=%7B%22filters%22%3A%5B%7B%22name%22%3A%22projId%22%2C%22op%22%3A%22%3D%3D%22%2C%22val%22%3A%221%22%7D%5D%7D HTTP/1.1" 200 -
+2021-07-26 08:58:43,715 [INFO] BEGIN (implicit)
+2021-07-26 08:58:43,715 [INFO] SELECT count(*) AS count_1 
+FROM project 
+WHERE project.id = ?
+2021-07-26 08:58:43,715 [INFO] ('1',)
+2021-07-26 08:58:43,716 [INFO] SELECT project.id AS project_id, project.name AS project_name, project.description AS project_description, project.date AS project_date, project.train_ae_time AS project_train_ae_time, project.make_patches_time AS project_make_patches_time, project.iteration AS project_iteration, project.embed_iteration AS project_embed_iteration 
+FROM project 
+WHERE project.id = ? ORDER BY project.id ASC
+ LIMIT ? OFFSET ?
+2021-07-26 08:58:43,716 [INFO] ('1', 1, 0)
+2021-07-26 08:58:43,718 [INFO] SELECT job.id AS job_id, job."projId" AS "job_projId", job."imageId" AS "job_imageId", job.cmd AS job_cmd, job.params AS job_params, job.status AS job_status, job.retval AS job_retval, job.start_date AS job_start_date 
+FROM job 
+WHERE ? = job."projId"
+2021-07-26 08:58:43,718 [INFO] (1,)
+2021-07-26 08:58:43,719 [INFO] SELECT image.id AS image_id, image."projId" AS "image_projId", image.name AS image_name, image.path AS image_path, image.height AS image_height, image.width AS image_width, image.ppixel AS image_ppixel, image.npixel AS image_npixel, image.nobjects AS image_nobjects, image.date AS image_date, image.make_patches_time AS image_make_patches_time, image.superpixel_time AS image_superpixel_time, image.superpixel_modelid AS image_superpixel_modelid 
+FROM image 
+WHERE ? = image."projId"
+2021-07-26 08:58:43,719 [INFO] (1,)
+2021-07-26 08:58:43,720 [INFO] ROLLBACK
+2021-07-26 08:58:43,720 [INFO] 192.168.178.148 - - [26/Jul/2021 08:58:43] "GET /api/db/project?q=%7B%22filters%22%3A%5B%7B%22name%22%3A%22id%22%2C%22op%22%3A%22%3D%3D%22%2C%22val%22%3A%221%22%7D%5D%7D HTTP/1.1" 200 -
+2021-07-26 08:58:43,724 [INFO] BEGIN (implicit)
+2021-07-26 08:58:43,725 [INFO] SELECT count(*) AS count_1 
+FROM project 
+WHERE project.id = ?
+2021-07-26 08:58:43,725 [INFO] ('1',)
+2021-07-26 08:58:43,726 [INFO] SELECT project.id AS project_id, project.name AS project_name, project.description AS project_description, project.date AS project_date, project.train_ae_time AS project_train_ae_time, project.make_patches_time AS project_make_patches_time, project.iteration AS project_iteration, project.embed_iteration AS project_embed_iteration 
+FROM project 
+WHERE project.id = ? ORDER BY project.id ASC
+ LIMIT ? OFFSET ?
+2021-07-26 08:58:43,726 [INFO] ('1', 1, 0)
+2021-07-26 08:58:43,726 [INFO] SELECT job.id AS job_id, job."projId" AS "job_projId", job."imageId" AS "job_imageId", job.cmd AS job_cmd, job.params AS job_params, job.status AS job_status, job.retval AS job_retval, job.start_date AS job_start_date 
+FROM job 
+WHERE ? = job."projId"
+2021-07-26 08:58:43,726 [INFO] (1,)
+2021-07-26 08:58:43,727 [INFO] SELECT image.id AS image_id, image."projId" AS "image_projId", image.name AS image_name, image.path AS image_path, image.height AS image_height, image.width AS image_width, image.ppixel AS image_ppixel, image.npixel AS image_npixel, image.nobjects AS image_nobjects, image.date AS image_date, image.make_patches_time AS image_make_patches_time, image.superpixel_time AS image_superpixel_time, image.superpixel_modelid AS image_superpixel_modelid 
+FROM image 
+WHERE ? = image."projId"
+2021-07-26 08:58:43,727 [INFO] (1,)
+2021-07-26 08:58:43,727 [INFO] ROLLBACK
+2021-07-26 08:58:43,728 [INFO] 192.168.178.148 - - [26/Jul/2021 08:58:43] "GET /api/db/project?q=%7B%22filters%22%3A%5B%7B%22name%22%3A%22id%22%2C%22op%22%3A%22%3D%3D%22%2C%22val%22%3A%221%22%7D%5D%7D HTTP/1.1" 200 -
+2021-07-26 08:58:43,732 [INFO] BEGIN (implicit)
+2021-07-26 08:58:43,732 [INFO] SELECT count(*) AS count_1 
+FROM project 
+WHERE project.id = ?
+2021-07-26 08:58:43,732 [INFO] ('1',)
+2021-07-26 08:58:43,733 [INFO] SELECT project.id AS project_id, project.name AS project_name, project.description AS project_description, project.date AS project_date, project.train_ae_time AS project_train_ae_time, project.make_patches_time AS project_make_patches_time, project.iteration AS project_iteration, project.embed_iteration AS project_embed_iteration 
+FROM project 
+WHERE project.id = ? ORDER BY project.id ASC
+ LIMIT ? OFFSET ?
+2021-07-26 08:58:43,733 [INFO] ('1', 1, 0)
+2021-07-26 08:58:43,734 [INFO] SELECT job.id AS job_id, job."projId" AS "job_projId", job."imageId" AS "job_imageId", job.cmd AS job_cmd, job.params AS job_params, job.status AS job_status, job.retval AS job_retval, job.start_date AS job_start_date 
+FROM job 
+WHERE ? = job."projId"
+2021-07-26 08:58:43,734 [INFO] (1,)
+2021-07-26 08:58:43,734 [INFO] SELECT image.id AS image_id, image."projId" AS "image_projId", image.name AS image_name, image.path AS image_path, image.height AS image_height, image.width AS image_width, image.ppixel AS image_ppixel, image.npixel AS image_npixel, image.nobjects AS image_nobjects, image.date AS image_date, image.make_patches_time AS image_make_patches_time, image.superpixel_time AS image_superpixel_time, image.superpixel_modelid AS image_superpixel_modelid 
+FROM image 
+WHERE ? = image."projId"
+2021-07-26 08:58:43,734 [INFO] (1,)
+2021-07-26 08:58:43,735 [INFO] ROLLBACK
+2021-07-26 08:58:43,735 [INFO] 192.168.178.148 - - [26/Jul/2021 08:58:43] "GET /api/db/project?q=%7B%22filters%22%3A%5B%7B%22name%22%3A%22id%22%2C%22op%22%3A%22%3D%3D%22%2C%22val%22%3A%221%22%7D%5D%7D HTTP/1.1" 200 -
+2021-07-26 08:58:43,740 [INFO] BEGIN (implicit)
+2021-07-26 08:58:43,740 [INFO] SELECT count(*) AS count_1 
+FROM project 
+WHERE project.id = ?
+2021-07-26 08:58:43,740 [INFO] ('1',)
+2021-07-26 08:58:43,741 [INFO] SELECT project.id AS project_id, project.name AS project_name, project.description AS project_description, project.date AS project_date, project.train_ae_time AS project_train_ae_time, project.make_patches_time AS project_make_patches_time, project.iteration AS project_iteration, project.embed_iteration AS project_embed_iteration 
+FROM project 
+WHERE project.id = ? ORDER BY project.id ASC
+ LIMIT ? OFFSET ?
+2021-07-26 08:58:43,741 [INFO] ('1', 1, 0)
+2021-07-26 08:58:43,742 [INFO] SELECT job.id AS job_id, job."projId" AS "job_projId", job."imageId" AS "job_imageId", job.cmd AS job_cmd, job.params AS job_params, job.status AS job_status, job.retval AS job_retval, job.start_date AS job_start_date 
+FROM job 
+WHERE ? = job."projId"
+2021-07-26 08:58:43,742 [INFO] (1,)
+2021-07-26 08:58:43,742 [INFO] SELECT image.id AS image_id, image."projId" AS "image_projId", image.name AS image_name, image.path AS image_path, image.height AS image_height, image.width AS image_width, image.ppixel AS image_ppixel, image.npixel AS image_npixel, image.nobjects AS image_nobjects, image.date AS image_date, image.make_patches_time AS image_make_patches_time, image.superpixel_time AS image_superpixel_time, image.superpixel_modelid AS image_superpixel_modelid 
+FROM image 
+WHERE ? = image."projId"
+2021-07-26 08:58:43,742 [INFO] (1,)
+2021-07-26 08:58:43,743 [INFO] ROLLBACK
+2021-07-26 08:58:43,743 [INFO] 192.168.178.148 - - [26/Jul/2021 08:58:43] "GET /api/db/project?q=%7B%22filters%22%3A%5B%7B%22name%22%3A%22id%22%2C%22op%22%3A%22%3D%3D%22%2C%22val%22%3A%221%22%7D%5D%7D HTTP/1.1" 200 -
+2021-07-26 08:58:43,748 [INFO] BEGIN (implicit)
+2021-07-26 08:58:43,749 [INFO] SELECT count(*) AS count_1 
+FROM job 
+WHERE job."projId" = ? AND job."imageId" IS NULL AND job.cmd = ? AND job.status IN (?, ?)
+ LIMIT ? OFFSET ?
+2021-07-26 08:58:43,749 [INFO] ('1', 'make_patches', 'RUNNING', 'QUEUE', 1, 0)
+2021-07-26 08:58:43,751 [INFO] SELECT count(*) AS count_1 
+FROM (SELECT job.id AS job_id, job."projId" AS "job_projId", job."imageId" AS "job_imageId", job.cmd AS job_cmd, job.params AS job_params, job.status AS job_status, job.retval AS job_retval, job.start_date AS job_start_date 
+FROM job 
+WHERE job."projId" = ? AND job."imageId" IS NULL AND job.cmd = ? AND job.status IN (?, ?) ORDER BY job.id ASC
+ LIMIT ? OFFSET ?) AS anon_1
+2021-07-26 08:58:43,751 [INFO] ('1', 'make_patches', 'RUNNING', 'QUEUE', 1, 0)
+2021-07-26 08:58:43,751 [INFO] ROLLBACK
+2021-07-26 08:58:43,752 [INFO] 192.168.178.148 - - [26/Jul/2021 08:58:43] "GET /api/db/job?q=%7B%22filters%22%3A%5B%7B%22name%22%3A%22projId%22%2C%22op%22%3A%22%3D%3D%22%2C%22val%22%3A%221%22%7D%2C%7B%22name%22%3A%22imageId%22%2C%22op%22%3A%22is_null%22%7D%2C%7B%22name%22%3A%22cmd%22%2C%22op%22%3A%22%3D%3D%22%2C%22val%22%3A%22make_patches%22%7D%2C%7B%22name%22%3A%22status%22%2C%22op%22%3A%22in%22%2C%22val%22%3A%5B%22RUNNING%22%2C%22QUEUE%22%5D%7D%5D%2C%22limit%22%3A1%7D HTTP/1.1" 200 -
+2021-07-26 08:58:43,757 [INFO] BEGIN (implicit)
+2021-07-26 08:58:43,757 [INFO] SELECT count(*) AS count_1 
+FROM job 
+WHERE job."projId" = ? AND job."imageId" IS NULL AND job.cmd = ? AND job.status IN (?, ?)
+ LIMIT ? OFFSET ?
+2021-07-26 08:58:43,757 [INFO] ('1', 'train_autoencoder', 'RUNNING', 'QUEUE', 1, 0)
+2021-07-26 08:58:43,759 [INFO] SELECT count(*) AS count_1 
+FROM (SELECT job.id AS job_id, job."projId" AS "job_projId", job."imageId" AS "job_imageId", job.cmd AS job_cmd, job.params AS job_params, job.status AS job_status, job.retval AS job_retval, job.start_date AS job_start_date 
+FROM job 
+WHERE job."projId" = ? AND job."imageId" IS NULL AND job.cmd = ? AND job.status IN (?, ?) ORDER BY job.id ASC
+ LIMIT ? OFFSET ?) AS anon_1
+2021-07-26 08:58:43,760 [INFO] ('1', 'train_autoencoder', 'RUNNING', 'QUEUE', 1, 0)
+2021-07-26 08:58:43,760 [INFO] ROLLBACK
+2021-07-26 08:58:43,761 [INFO] 192.168.178.148 - - [26/Jul/2021 08:58:43] "GET /api/db/job?q=%7B%22filters%22%3A%5B%7B%22name%22%3A%22projId%22%2C%22op%22%3A%22%3D%3D%22%2C%22val%22%3A%221%22%7D%2C%7B%22name%22%3A%22imageId%22%2C%22op%22%3A%22is_null%22%7D%2C%7B%22name%22%3A%22cmd%22%2C%22op%22%3A%22%3D%3D%22%2C%22val%22%3A%22train_autoencoder%22%7D%2C%7B%22name%22%3A%22status%22%2C%22op%22%3A%22in%22%2C%22val%22%3A%5B%22RUNNING%22%2C%22QUEUE%22%5D%7D%5D%2C%22limit%22%3A1%7D HTTP/1.1" 200 -
+2021-07-26 08:58:43,765 [INFO] BEGIN (implicit)
+2021-07-26 08:58:43,766 [INFO] SELECT count(*) AS count_1 
+FROM job 
+WHERE job."projId" = ? AND job."imageId" IS NULL AND job.cmd = ? AND job.status IN (?, ?)
+ LIMIT ? OFFSET ?
+2021-07-26 08:58:43,766 [INFO] ('1', 'make_embed', 'RUNNING', 'QUEUE', 1, 0)
+2021-07-26 08:58:43,768 [INFO] SELECT count(*) AS count_1 
+FROM (SELECT job.id AS job_id, job."projId" AS "job_projId", job."imageId" AS "job_imageId", job.cmd AS job_cmd, job.params AS job_params, job.status AS job_status, job.retval AS job_retval, job.start_date AS job_start_date 
+FROM job 
+WHERE job."projId" = ? AND job."imageId" IS NULL AND job.cmd = ? AND job.status IN (?, ?) ORDER BY job.id ASC
+ LIMIT ? OFFSET ?) AS anon_1
+2021-07-26 08:58:43,768 [INFO] ('1', 'make_embed', 'RUNNING', 'QUEUE', 1, 0)
+2021-07-26 08:58:43,768 [INFO] ROLLBACK
+2021-07-26 08:58:43,769 [INFO] 192.168.178.148 - - [26/Jul/2021 08:58:43] "GET /api/db/job?q=%7B%22filters%22%3A%5B%7B%22name%22%3A%22projId%22%2C%22op%22%3A%22%3D%3D%22%2C%22val%22%3A%221%22%7D%2C%7B%22name%22%3A%22imageId%22%2C%22op%22%3A%22is_null%22%7D%2C%7B%22name%22%3A%22cmd%22%2C%22op%22%3A%22%3D%3D%22%2C%22val%22%3A%22make_embed%22%7D%2C%7B%22name%22%3A%22status%22%2C%22op%22%3A%22in%22%2C%22val%22%3A%5B%22RUNNING%22%2C%22QUEUE%22%5D%7D%5D%2C%22limit%22%3A1%7D HTTP/1.1" 200 -
+2021-08-19 20:27:33,881 [INFO] Initializing database
+2021-08-19 20:27:33,896 [INFO] SELECT CAST('test plain returns' AS VARCHAR(60)) AS anon_1
+2021-08-19 20:27:33,896 [INFO] ()
+2021-08-19 20:27:33,896 [INFO] SELECT CAST('test unicode returns' AS VARCHAR(60)) AS anon_1
+2021-08-19 20:27:33,896 [INFO] ()
+2021-08-19 20:27:33,897 [INFO] PRAGMA main.table_info("project")
+2021-08-19 20:27:33,897 [INFO] ()
+2021-08-19 20:27:33,897 [INFO] PRAGMA main.table_info("image")
+2021-08-19 20:27:33,897 [INFO] ()
+2021-08-19 20:27:33,898 [INFO] PRAGMA main.table_info("roi")
+2021-08-19 20:27:33,898 [INFO] ()
+2021-08-19 20:27:33,898 [INFO] PRAGMA main.table_info("job")
+2021-08-19 20:27:33,898 [INFO] ()
+2021-08-19 20:27:33,898 [INFO] PRAGMA main.table_info("jobid_base")
+2021-08-19 20:27:33,898 [INFO] ()
+2021-08-19 20:27:33,899 [INFO] PRAGMA temp.table_info("jobid_base")
+2021-08-19 20:27:33,899 [INFO] ()
+2021-08-19 20:27:33,899 [INFO] 
+CREATE TABLE jobid_base (
+	id INTEGER NOT NULL, 
+	timestamp TEXT, 
+	procout TEXT, 
+	PRIMARY KEY (id)
+)
+
+
+2021-08-19 20:27:33,899 [INFO] ()
+2021-08-19 20:27:33,901 [INFO] COMMIT
+2021-08-19 20:27:33,902 [INFO] pragma journal_mode=wal;
+2021-08-19 20:27:33,902 [INFO] ()
+2021-08-19 20:27:33,903 [INFO] BEGIN (implicit)
+2021-08-19 20:27:33,903 [INFO] SELECT name FROM sqlite_master WHERE type='table' and name like 'jobid_%' ORDER BY name
+2021-08-19 20:27:33,903 [INFO] ()
+2021-08-19 20:27:33,904 [INFO] Dropping jobid_table jobid_base
+2021-08-19 20:27:33,904 [INFO] DROP TABLE IF EXISTS jobid_base
+2021-08-19 20:27:33,904 [INFO] ()
+2021-08-19 20:27:33,906 [INFO] COMMIT
+2021-08-19 20:27:33,906 [INFO] Clearing stale jobs
+2021-08-19 20:27:33,913 [INFO] BEGIN (implicit)
+2021-08-19 20:27:33,914 [INFO] DELETE FROM job WHERE job.status = ?
+2021-08-19 20:27:33,914 [INFO] ('QUEUE',)
+2021-08-19 20:27:33,915 [INFO] DELETE FROM job WHERE job.status = ?
+2021-08-19 20:27:33,915 [INFO] ('RUNNING',)
+2021-08-19 20:27:33,915 [INFO] COMMIT
+2021-08-19 20:27:33,915 [INFO] Deleted 0 queued jobs.
+2021-08-19 20:27:33,930 [INFO] Starting up worker pool.
+2021-08-19 20:27:33,946 [WARNING]  * Running on all addresses.
+   WARNING: This is a development server. Do not use it in a production deployment.
+2021-08-19 20:27:33,946 [INFO]  * Running on http://10.0.0.181:5555/ (Press CTRL+C to quit)
+2021-08-19 20:27:47,627 [INFO] BEGIN (implicit)
+2021-08-19 20:27:47,630 [INFO] SELECT project.name AS project_name, project.date AS project_date, project.iteration AS project_iteration, project.description AS project_description, project.id AS project_id, project.id = image."projId" AS images, count(roi.id) AS "nROIs", count(roi.id) - ifnull(sum(roi."testingROI"), ?) AS "nTrainingROIs", count(distinct(image.id)) AS "nImages", ifnull(sum(distinct(image.nobjects)), ?) AS "nObjects" 
+FROM project LEFT OUTER JOIN image ON image."projId" = project.id LEFT OUTER JOIN roi ON roi."imageId" = image.id GROUP BY project.id
+2021-08-19 20:27:47,630 [INFO] (0, 0)
+2021-08-19 20:27:47,644 [INFO] 10.0.0.181 - - [19/Aug/2021 20:27:47] "GET / HTTP/1.1" 200 -
+2021-08-19 20:27:47,679 [INFO] 10.0.0.181 - - [19/Aug/2021 20:27:47] "GET /static/css/bootstrap.min.css HTTP/1.1" 200 -
+2021-08-19 20:27:47,683 [INFO] 10.0.0.181 - - [19/Aug/2021 20:27:47] "GET /static/css/style.css HTTP/1.1" 200 -
+2021-08-19 20:27:47,687 [INFO] 10.0.0.181 - - [19/Aug/2021 20:27:47] "GET /static/css/bootstrap-dialog.min.css HTTP/1.1" 200 -
+2021-08-19 20:27:47,688 [INFO] 10.0.0.181 - - [19/Aug/2021 20:27:47] "GET /static/css/jquery-ui.css HTTP/1.1" 200 -
+2021-08-19 20:27:47,690 [INFO] 10.0.0.181 - - [19/Aug/2021 20:27:47] "GET /static/js/angular.min.js HTTP/1.1" 200 -
+2021-08-19 20:27:47,692 [INFO] 10.0.0.181 - - [19/Aug/2021 20:27:47] "GET /static/js/jquery-3.5.0.js HTTP/1.1" 200 -
+2021-08-19 20:27:47,697 [INFO] 10.0.0.181 - - [19/Aug/2021 20:27:47] "GET /static/js/bootstrap.min.js HTTP/1.1" 200 -
+2021-08-19 20:27:47,697 [INFO] 10.0.0.181 - - [19/Aug/2021 20:27:47] "GET /static/js/bootstrap-dialog.min.js HTTP/1.1" 200 -
+2021-08-19 20:27:47,710 [INFO] 10.0.0.181 - - [19/Aug/2021 20:27:47] "GET /static/js/jquery-ui.js HTTP/1.1" 200 -
+2021-08-19 20:27:47,719 [INFO] 10.0.0.181 - - [19/Aug/2021 20:27:47] "GET /static/js/qa-utils.js HTTP/1.1" 200 -
+2021-08-19 20:27:47,719 [INFO] 10.0.0.181 - - [19/Aug/2021 20:27:47] "GET /static/js/projects.js HTTP/1.1" 200 -
+2021-08-19 20:27:48,060 [INFO] 10.0.0.181 - - [19/Aug/2021 20:27:48] "GET /favicon.ico HTTP/1.1" 200 -
+2021-08-19 20:27:51,058 [INFO] BEGIN (implicit)
+2021-08-19 20:27:51,059 [INFO] SELECT project.id AS project_id, project.name AS project_name, project.description AS project_description, project.date AS project_date, project.train_ae_time AS project_train_ae_time, project.make_patches_time AS project_make_patches_time, project.iteration AS project_iteration, project.embed_iteration AS project_embed_iteration 
+FROM project 
+WHERE project.name = ?
+ LIMIT ? OFFSET ?
+2021-08-19 20:27:51,059 [INFO] ('sdag', 1, 0)
+2021-08-19 20:27:51,063 [INFO] SELECT image.id AS image_id, image."projId" AS "image_projId", image.name AS image_name, image.path AS image_path, image.height AS image_height, image.width AS image_width, image.date AS image_date, image.id = roi."imageId" AS rois, image.make_patches_time AS image_make_patches_time, image.npixel AS image_npixel, image.ppixel AS image_ppixel, image.nobjects AS image_nobjects, count(roi.id) AS "ROIs", count(roi.id) - ifnull(sum(roi."testingROI"), ?) AS "trainingROIs" 
+FROM image LEFT OUTER JOIN roi ON roi."imageId" = image.id 
+WHERE image."projId" = ? GROUP BY image.id
+2021-08-19 20:27:51,063 [INFO] (0, 1)
+2021-08-19 20:27:51,081 [INFO] ROLLBACK
+2021-08-19 20:27:51,081 [INFO] 10.0.0.181 - - [19/Aug/2021 20:27:51] "GET /sdag/images HTTP/1.1" 200 -
+2021-08-19 20:27:51,110 [INFO] 10.0.0.181 - - [19/Aug/2021 20:27:51] "[36mGET /static/css/bootstrap.min.css HTTP/1.1[0m" 304 -
+2021-08-19 20:27:51,118 [INFO] 10.0.0.181 - - [19/Aug/2021 20:27:51] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2021-08-19 20:27:51,120 [INFO] 10.0.0.181 - - [19/Aug/2021 20:27:51] "GET /static/css/logs.css HTTP/1.1" 200 -
+2021-08-19 20:27:51,121 [INFO] 10.0.0.181 - - [19/Aug/2021 20:27:51] "GET /static/css/imageselection.css HTTP/1.1" 200 -
+2021-08-19 20:27:51,121 [INFO] 10.0.0.181 - - [19/Aug/2021 20:27:51] "GET /static/css/basic.css HTTP/1.1" 200 -
+2021-08-19 20:27:51,123 [INFO] 10.0.0.181 - - [19/Aug/2021 20:27:51] "GET /static/css/dropzone.css HTTP/1.1" 200 -
+2021-08-19 20:27:51,124 [INFO] 10.0.0.181 - - [19/Aug/2021 20:27:51] "GET /static/css/modal.css HTTP/1.1" 200 -
+2021-08-19 20:27:51,125 [INFO] 10.0.0.181 - - [19/Aug/2021 20:27:51] "[36mGET /static/css/jquery-ui.css HTTP/1.1[0m" 304 -
+2021-08-19 20:27:51,131 [INFO] 10.0.0.181 - - [19/Aug/2021 20:27:51] "GET /static/js/dropzone.js HTTP/1.1" 200 -
+2021-08-19 20:27:51,131 [INFO] 10.0.0.181 - - [19/Aug/2021 20:27:51] "GET /static/js/projectPageScript.js HTTP/1.1" 200 -
+2021-08-19 20:27:51,131 [INFO] BEGIN (implicit)
+2021-08-19 20:27:51,135 [INFO] 10.0.0.181 - - [19/Aug/2021 20:27:51] "[36mGET /static/js/angular.min.js HTTP/1.1[0m" 304 -
+2021-08-19 20:27:51,136 [INFO] 10.0.0.181 - - [19/Aug/2021 20:27:51] "[36mGET /static/js/jquery-3.5.0.js HTTP/1.1[0m" 304 -
+2021-08-19 20:27:51,136 [INFO] SELECT project.id AS project_id, project.name AS project_name, project.description AS project_description, project.date AS project_date, project.train_ae_time AS project_train_ae_time, project.make_patches_time AS project_make_patches_time, project.iteration AS project_iteration, project.embed_iteration AS project_embed_iteration 
+FROM project 
+WHERE project.name = ?
+ LIMIT ? OFFSET ?
+2021-08-19 20:27:51,138 [INFO] 10.0.0.181 - - [19/Aug/2021 20:27:51] "[36mGET /static/js/bootstrap.min.js HTTP/1.1[0m" 304 -
+2021-08-19 20:27:51,138 [INFO] ('sdag', 1, 0)
+2021-08-19 20:27:51,140 [INFO] 10.0.0.181 - - [19/Aug/2021 20:27:51] "[36mGET /static/js/bootstrap-dialog.min.js HTTP/1.1[0m" 304 -
+2021-08-19 20:27:51,142 [INFO] 10.0.0.181 - - [19/Aug/2021 20:27:51] "[36mGET /static/js/qa-utils.js HTTP/1.1[0m" 304 -
+2021-08-19 20:27:51,143 [INFO] 10.0.0.181 - - [19/Aug/2021 20:27:51] "[36mGET /static/js/jquery-ui.js HTTP/1.1[0m" 304 -
+2021-08-19 20:27:51,149 [INFO] ROLLBACK
+2021-08-19 20:27:51,149 [INFO] 10.0.0.181 - - [19/Aug/2021 20:27:51] "GET /sdag/images/images-main HTTP/1.1" 200 -
+2021-08-19 20:27:51,304 [INFO] BEGIN (implicit)
+2021-08-19 20:27:51,305 [INFO] SELECT count(*) AS count_1 
+FROM image 
+WHERE image."projId" = ?
+2021-08-19 20:27:51,305 [INFO] ('1',)
+2021-08-19 20:27:51,306 [INFO] ROLLBACK
+2021-08-19 20:27:51,306 [INFO] 10.0.0.181 - - [19/Aug/2021 20:27:51] "GET /api/db/image?q=%7B%22filters%22%3A%5B%7B%22name%22%3A%22projId%22%2C%22op%22%3A%22%3D%3D%22%2C%22val%22%3A%221%22%7D%5D%7D HTTP/1.1" 200 -
+2021-08-19 20:27:51,312 [INFO] BEGIN (implicit)
+2021-08-19 20:27:51,313 [INFO] SELECT count(*) AS count_1 
+FROM project 
+WHERE project.id = ?
+2021-08-19 20:27:51,313 [INFO] ('1',)
+2021-08-19 20:27:51,314 [INFO] SELECT project.id AS project_id, project.name AS project_name, project.description AS project_description, project.date AS project_date, project.train_ae_time AS project_train_ae_time, project.make_patches_time AS project_make_patches_time, project.iteration AS project_iteration, project.embed_iteration AS project_embed_iteration 
+FROM project 
+WHERE project.id = ? ORDER BY project.id ASC
+ LIMIT ? OFFSET ?
+2021-08-19 20:27:51,314 [INFO] ('1', 1, 0)
+2021-08-19 20:27:51,315 [INFO] SELECT image.id AS image_id, image."projId" AS "image_projId", image.name AS image_name, image.path AS image_path, image.height AS image_height, image.width AS image_width, image.ppixel AS image_ppixel, image.npixel AS image_npixel, image.nobjects AS image_nobjects, image.date AS image_date, image.make_patches_time AS image_make_patches_time, image.superpixel_time AS image_superpixel_time, image.superpixel_modelid AS image_superpixel_modelid 
+FROM image 
+WHERE ? = image."projId"
+2021-08-19 20:27:51,315 [INFO] (1,)
+2021-08-19 20:27:51,317 [INFO] SELECT job.id AS job_id, job."projId" AS "job_projId", job."imageId" AS "job_imageId", job.cmd AS job_cmd, job.params AS job_params, job.status AS job_status, job.retval AS job_retval, job.start_date AS job_start_date 
+FROM job 
+WHERE ? = job."projId"
+2021-08-19 20:27:51,317 [INFO] (1,)
+2021-08-19 20:27:51,318 [INFO] ROLLBACK
+2021-08-19 20:27:51,318 [INFO] 10.0.0.181 - - [19/Aug/2021 20:27:51] "GET /api/db/project?q=%7B%22filters%22%3A%5B%7B%22name%22%3A%22id%22%2C%22op%22%3A%22%3D%3D%22%2C%22val%22%3A%221%22%7D%5D%7D HTTP/1.1" 200 -
+2021-08-19 20:27:51,325 [INFO] BEGIN (implicit)
+2021-08-19 20:27:51,325 [INFO] SELECT count(*) AS count_1 
+FROM project 
+WHERE project.id = ?
+2021-08-19 20:27:51,325 [INFO] ('1',)
+2021-08-19 20:27:51,326 [INFO] SELECT project.id AS project_id, project.name AS project_name, project.description AS project_description, project.date AS project_date, project.train_ae_time AS project_train_ae_time, project.make_patches_time AS project_make_patches_time, project.iteration AS project_iteration, project.embed_iteration AS project_embed_iteration 
+FROM project 
+WHERE project.id = ? ORDER BY project.id ASC
+ LIMIT ? OFFSET ?
+2021-08-19 20:27:51,326 [INFO] ('1', 1, 0)
+2021-08-19 20:27:51,327 [INFO] SELECT image.id AS image_id, image."projId" AS "image_projId", image.name AS image_name, image.path AS image_path, image.height AS image_height, image.width AS image_width, image.ppixel AS image_ppixel, image.npixel AS image_npixel, image.nobjects AS image_nobjects, image.date AS image_date, image.make_patches_time AS image_make_patches_time, image.superpixel_time AS image_superpixel_time, image.superpixel_modelid AS image_superpixel_modelid 
+FROM image 
+WHERE ? = image."projId"
+2021-08-19 20:27:51,327 [INFO] (1,)
+2021-08-19 20:27:51,328 [INFO] SELECT job.id AS job_id, job."projId" AS "job_projId", job."imageId" AS "job_imageId", job.cmd AS job_cmd, job.params AS job_params, job.status AS job_status, job.retval AS job_retval, job.start_date AS job_start_date 
+FROM job 
+WHERE ? = job."projId"
+2021-08-19 20:27:51,328 [INFO] (1,)
+2021-08-19 20:27:51,328 [INFO] ROLLBACK
+2021-08-19 20:27:51,329 [INFO] 10.0.0.181 - - [19/Aug/2021 20:27:51] "GET /api/db/project?q=%7B%22filters%22%3A%5B%7B%22name%22%3A%22id%22%2C%22op%22%3A%22%3D%3D%22%2C%22val%22%3A%221%22%7D%5D%7D HTTP/1.1" 200 -
+2021-08-19 20:27:51,334 [INFO] BEGIN (implicit)
+2021-08-19 20:27:51,335 [INFO] SELECT count(*) AS count_1 
+FROM project 
+WHERE project.id = ?
+2021-08-19 20:27:51,335 [INFO] ('1',)
+2021-08-19 20:27:51,336 [INFO] SELECT project.id AS project_id, project.name AS project_name, project.description AS project_description, project.date AS project_date, project.train_ae_time AS project_train_ae_time, project.make_patches_time AS project_make_patches_time, project.iteration AS project_iteration, project.embed_iteration AS project_embed_iteration 
+FROM project 
+WHERE project.id = ? ORDER BY project.id ASC
+ LIMIT ? OFFSET ?
+2021-08-19 20:27:51,336 [INFO] ('1', 1, 0)
+2021-08-19 20:27:51,337 [INFO] SELECT image.id AS image_id, image."projId" AS "image_projId", image.name AS image_name, image.path AS image_path, image.height AS image_height, image.width AS image_width, image.ppixel AS image_ppixel, image.npixel AS image_npixel, image.nobjects AS image_nobjects, image.date AS image_date, image.make_patches_time AS image_make_patches_time, image.superpixel_time AS image_superpixel_time, image.superpixel_modelid AS image_superpixel_modelid 
+FROM image 
+WHERE ? = image."projId"
+2021-08-19 20:27:51,337 [INFO] (1,)
+2021-08-19 20:27:51,337 [INFO] SELECT job.id AS job_id, job."projId" AS "job_projId", job."imageId" AS "job_imageId", job.cmd AS job_cmd, job.params AS job_params, job.status AS job_status, job.retval AS job_retval, job.start_date AS job_start_date 
+FROM job 
+WHERE ? = job."projId"
+2021-08-19 20:27:51,337 [INFO] (1,)
+2021-08-19 20:27:51,338 [INFO] ROLLBACK
+2021-08-19 20:27:51,338 [INFO] 10.0.0.181 - - [19/Aug/2021 20:27:51] "GET /api/db/project?q=%7B%22filters%22%3A%5B%7B%22name%22%3A%22id%22%2C%22op%22%3A%22%3D%3D%22%2C%22val%22%3A%221%22%7D%5D%7D HTTP/1.1" 200 -
+2021-08-19 20:27:51,344 [INFO] BEGIN (implicit)
+2021-08-19 20:27:51,345 [INFO] SELECT count(*) AS count_1 
+FROM project 
+WHERE project.id = ?
+2021-08-19 20:27:51,345 [INFO] ('1',)
+2021-08-19 20:27:51,346 [INFO] SELECT project.id AS project_id, project.name AS project_name, project.description AS project_description, project.date AS project_date, project.train_ae_time AS project_train_ae_time, project.make_patches_time AS project_make_patches_time, project.iteration AS project_iteration, project.embed_iteration AS project_embed_iteration 
+FROM project 
+WHERE project.id = ? ORDER BY project.id ASC
+ LIMIT ? OFFSET ?
+2021-08-19 20:27:51,346 [INFO] ('1', 1, 0)
+2021-08-19 20:27:51,346 [INFO] SELECT image.id AS image_id, image."projId" AS "image_projId", image.name AS image_name, image.path AS image_path, image.height AS image_height, image.width AS image_width, image.ppixel AS image_ppixel, image.npixel AS image_npixel, image.nobjects AS image_nobjects, image.date AS image_date, image.make_patches_time AS image_make_patches_time, image.superpixel_time AS image_superpixel_time, image.superpixel_modelid AS image_superpixel_modelid 
+FROM image 
+WHERE ? = image."projId"
+2021-08-19 20:27:51,347 [INFO] (1,)
+2021-08-19 20:27:51,347 [INFO] SELECT job.id AS job_id, job."projId" AS "job_projId", job."imageId" AS "job_imageId", job.cmd AS job_cmd, job.params AS job_params, job.status AS job_status, job.retval AS job_retval, job.start_date AS job_start_date 
+FROM job 
+WHERE ? = job."projId"
+2021-08-19 20:27:51,347 [INFO] (1,)
+2021-08-19 20:27:51,348 [INFO] ROLLBACK
+2021-08-19 20:27:51,348 [INFO] 10.0.0.181 - - [19/Aug/2021 20:27:51] "GET /api/db/project?q=%7B%22filters%22%3A%5B%7B%22name%22%3A%22id%22%2C%22op%22%3A%22%3D%3D%22%2C%22val%22%3A%221%22%7D%5D%7D HTTP/1.1" 200 -
+2021-08-19 20:27:51,354 [INFO] BEGIN (implicit)
+2021-08-19 20:27:51,355 [INFO] SELECT count(*) AS count_1 
+FROM job 
+WHERE job."projId" = ? AND job."imageId" IS NULL AND job.cmd = ? AND job.status IN (?, ?)
+ LIMIT ? OFFSET ?
+2021-08-19 20:27:51,355 [INFO] ('1', 'make_patches', 'RUNNING', 'QUEUE', 1, 0)
+2021-08-19 20:27:51,357 [INFO] SELECT count(*) AS count_1 
+FROM (SELECT job.id AS job_id, job."projId" AS "job_projId", job."imageId" AS "job_imageId", job.cmd AS job_cmd, job.params AS job_params, job.status AS job_status, job.retval AS job_retval, job.start_date AS job_start_date 
+FROM job 
+WHERE job."projId" = ? AND job."imageId" IS NULL AND job.cmd = ? AND job.status IN (?, ?) ORDER BY job.id ASC
+ LIMIT ? OFFSET ?) AS anon_1
+2021-08-19 20:27:51,357 [INFO] ('1', 'make_patches', 'RUNNING', 'QUEUE', 1, 0)
+2021-08-19 20:27:51,358 [INFO] ROLLBACK
+2021-08-19 20:27:51,358 [INFO] 10.0.0.181 - - [19/Aug/2021 20:27:51] "GET /api/db/job?q=%7B%22filters%22%3A%5B%7B%22name%22%3A%22projId%22%2C%22op%22%3A%22%3D%3D%22%2C%22val%22%3A%221%22%7D%2C%7B%22name%22%3A%22imageId%22%2C%22op%22%3A%22is_null%22%7D%2C%7B%22name%22%3A%22cmd%22%2C%22op%22%3A%22%3D%3D%22%2C%22val%22%3A%22make_patches%22%7D%2C%7B%22name%22%3A%22status%22%2C%22op%22%3A%22in%22%2C%22val%22%3A%5B%22RUNNING%22%2C%22QUEUE%22%5D%7D%5D%2C%22limit%22%3A1%7D HTTP/1.1" 200 -
+2021-08-19 20:27:51,364 [INFO] BEGIN (implicit)
+2021-08-19 20:27:51,365 [INFO] SELECT count(*) AS count_1 
+FROM job 
+WHERE job."projId" = ? AND job."imageId" IS NULL AND job.cmd = ? AND job.status IN (?, ?)
+ LIMIT ? OFFSET ?
+2021-08-19 20:27:51,365 [INFO] ('1', 'train_autoencoder', 'RUNNING', 'QUEUE', 1, 0)
+2021-08-19 20:27:51,367 [INFO] SELECT count(*) AS count_1 
+FROM (SELECT job.id AS job_id, job."projId" AS "job_projId", job."imageId" AS "job_imageId", job.cmd AS job_cmd, job.params AS job_params, job.status AS job_status, job.retval AS job_retval, job.start_date AS job_start_date 
+FROM job 
+WHERE job."projId" = ? AND job."imageId" IS NULL AND job.cmd = ? AND job.status IN (?, ?) ORDER BY job.id ASC
+ LIMIT ? OFFSET ?) AS anon_1
+2021-08-19 20:27:51,367 [INFO] ('1', 'train_autoencoder', 'RUNNING', 'QUEUE', 1, 0)
+2021-08-19 20:27:51,368 [INFO] ROLLBACK
+2021-08-19 20:27:51,368 [INFO] 10.0.0.181 - - [19/Aug/2021 20:27:51] "GET /api/db/job?q=%7B%22filters%22%3A%5B%7B%22name%22%3A%22projId%22%2C%22op%22%3A%22%3D%3D%22%2C%22val%22%3A%221%22%7D%2C%7B%22name%22%3A%22imageId%22%2C%22op%22%3A%22is_null%22%7D%2C%7B%22name%22%3A%22cmd%22%2C%22op%22%3A%22%3D%3D%22%2C%22val%22%3A%22train_autoencoder%22%7D%2C%7B%22name%22%3A%22status%22%2C%22op%22%3A%22in%22%2C%22val%22%3A%5B%22RUNNING%22%2C%22QUEUE%22%5D%7D%5D%2C%22limit%22%3A1%7D HTTP/1.1" 200 -
+2021-08-19 20:27:51,375 [INFO] BEGIN (implicit)
+2021-08-19 20:27:51,375 [INFO] SELECT count(*) AS count_1 
+FROM job 
+WHERE job."projId" = ? AND job."imageId" IS NULL AND job.cmd = ? AND job.status IN (?, ?)
+ LIMIT ? OFFSET ?
+2021-08-19 20:27:51,375 [INFO] ('1', 'make_embed', 'RUNNING', 'QUEUE', 1, 0)
+2021-08-19 20:27:51,378 [INFO] SELECT count(*) AS count_1 
+FROM (SELECT job.id AS job_id, job."projId" AS "job_projId", job."imageId" AS "job_imageId", job.cmd AS job_cmd, job.params AS job_params, job.status AS job_status, job.retval AS job_retval, job.start_date AS job_start_date 
+FROM job 
+WHERE job."projId" = ? AND job."imageId" IS NULL AND job.cmd = ? AND job.status IN (?, ?) ORDER BY job.id ASC
+ LIMIT ? OFFSET ?) AS anon_1
+2021-08-19 20:27:51,378 [INFO] ('1', 'make_embed', 'RUNNING', 'QUEUE', 1, 0)
+2021-08-19 20:27:51,379 [INFO] ROLLBACK
+2021-08-19 20:27:51,379 [INFO] 10.0.0.181 - - [19/Aug/2021 20:27:51] "GET /api/db/job?q=%7B%22filters%22%3A%5B%7B%22name%22%3A%22projId%22%2C%22op%22%3A%22%3D%3D%22%2C%22val%22%3A%221%22%7D%2C%7B%22name%22%3A%22imageId%22%2C%22op%22%3A%22is_null%22%7D%2C%7B%22name%22%3A%22cmd%22%2C%22op%22%3A%22%3D%3D%22%2C%22val%22%3A%22make_embed%22%7D%2C%7B%22name%22%3A%22status%22%2C%22op%22%3A%22in%22%2C%22val%22%3A%5B%22RUNNING%22%2C%22QUEUE%22%5D%7D%5D%2C%22limit%22%3A1%7D HTTP/1.1" 200 -
+2021-08-19 20:29:14,744 [INFO] Initializing database
+2021-08-19 20:29:14,750 [INFO] SELECT CAST('test plain returns' AS VARCHAR(60)) AS anon_1
+2021-08-19 20:29:14,750 [INFO] ()
+2021-08-19 20:29:14,750 [INFO] SELECT CAST('test unicode returns' AS VARCHAR(60)) AS anon_1
+2021-08-19 20:29:14,750 [INFO] ()
+2021-08-19 20:29:14,750 [INFO] PRAGMA main.table_info("project")
+2021-08-19 20:29:14,750 [INFO] ()
+2021-08-19 20:29:14,751 [INFO] PRAGMA main.table_info("image")
+2021-08-19 20:29:14,751 [INFO] ()
+2021-08-19 20:29:14,751 [INFO] PRAGMA main.table_info("roi")
+2021-08-19 20:29:14,751 [INFO] ()
+2021-08-19 20:29:14,751 [INFO] PRAGMA main.table_info("job")
+2021-08-19 20:29:14,751 [INFO] ()
+2021-08-19 20:29:14,752 [INFO] PRAGMA main.table_info("jobid_base")
+2021-08-19 20:29:14,752 [INFO] ()
+2021-08-19 20:29:14,752 [INFO] PRAGMA temp.table_info("jobid_base")
+2021-08-19 20:29:14,752 [INFO] ()
+2021-08-19 20:29:14,752 [INFO] 
+CREATE TABLE jobid_base (
+	id INTEGER NOT NULL, 
+	timestamp TEXT, 
+	procout TEXT, 
+	PRIMARY KEY (id)
+)
+
+
+2021-08-19 20:29:14,753 [INFO] ()
+2021-08-19 20:29:14,758 [INFO] COMMIT
+2021-08-19 20:29:14,759 [INFO] pragma journal_mode=wal;
+2021-08-19 20:29:14,759 [INFO] ()
+2021-08-19 20:29:14,759 [INFO] BEGIN (implicit)
+2021-08-19 20:29:14,760 [INFO] SELECT name FROM sqlite_master WHERE type='table' and name like 'jobid_%' ORDER BY name
+2021-08-19 20:29:14,760 [INFO] ()
+2021-08-19 20:29:14,760 [INFO] Dropping jobid_table jobid_base
+2021-08-19 20:29:14,760 [INFO] DROP TABLE IF EXISTS jobid_base
+2021-08-19 20:29:14,760 [INFO] ()
+2021-08-19 20:29:14,762 [INFO] COMMIT
+2021-08-19 20:29:14,763 [INFO] Clearing stale jobs
+2021-08-19 20:29:14,770 [INFO] BEGIN (implicit)
+2021-08-19 20:29:14,770 [INFO] DELETE FROM job WHERE job.status = ?
+2021-08-19 20:29:14,770 [INFO] ('QUEUE',)
+2021-08-19 20:29:14,771 [INFO] DELETE FROM job WHERE job.status = ?
+2021-08-19 20:29:14,771 [INFO] ('RUNNING',)
+2021-08-19 20:29:14,771 [INFO] COMMIT
+2021-08-19 20:29:14,771 [INFO] Deleted 0 queued jobs.
+2021-08-19 20:29:14,786 [INFO] Starting up worker pool.
+2021-08-19 20:29:14,801 [WARNING]  * Running on all addresses.
+   WARNING: This is a development server. Do not use it in a production deployment.
+2021-08-19 20:29:14,801 [INFO]  * Running on http://10.0.0.181:5555/ (Press CTRL+C to quit)
+2021-08-19 20:29:18,452 [INFO] BEGIN (implicit)
+2021-08-19 20:29:18,455 [INFO] SELECT project.name AS project_name, project.date AS project_date, project.iteration AS project_iteration, project.description AS project_description, project.id AS project_id, project.id = image."projId" AS images, count(roi.id) AS "nROIs", count(roi.id) - ifnull(sum(roi."testingROI"), ?) AS "nTrainingROIs", count(distinct(image.id)) AS "nImages", ifnull(sum(distinct(image.nobjects)), ?) AS "nObjects" 
+FROM project LEFT OUTER JOIN image ON image."projId" = project.id LEFT OUTER JOIN roi ON roi."imageId" = image.id GROUP BY project.id
+2021-08-19 20:29:18,455 [INFO] (0, 0)
+2021-08-19 20:29:18,468 [INFO] 10.0.0.181 - - [19/Aug/2021 20:29:18] "GET / HTTP/1.1" 200 -
+2021-08-19 20:29:18,493 [INFO] 10.0.0.181 - - [19/Aug/2021 20:29:18] "[36mGET /static/css/bootstrap.min.css HTTP/1.1[0m" 304 -
+2021-08-19 20:29:18,495 [INFO] 10.0.0.181 - - [19/Aug/2021 20:29:18] "[36mGET /static/css/bootstrap-dialog.min.css HTTP/1.1[0m" 304 -
+2021-08-19 20:29:18,499 [INFO] 10.0.0.181 - - [19/Aug/2021 20:29:18] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2021-08-19 20:29:18,502 [INFO] 10.0.0.181 - - [19/Aug/2021 20:29:18] "[36mGET /static/css/jquery-ui.css HTTP/1.1[0m" 304 -
+2021-08-19 20:29:18,506 [INFO] 10.0.0.181 - - [19/Aug/2021 20:29:18] "[36mGET /static/js/angular.min.js HTTP/1.1[0m" 304 -
+2021-08-19 20:29:18,509 [INFO] 10.0.0.181 - - [19/Aug/2021 20:29:18] "[36mGET /static/js/jquery-3.5.0.js HTTP/1.1[0m" 304 -
+2021-08-19 20:29:18,511 [INFO] 10.0.0.181 - - [19/Aug/2021 20:29:18] "[36mGET /static/js/bootstrap.min.js HTTP/1.1[0m" 304 -
+2021-08-19 20:29:18,514 [INFO] 10.0.0.181 - - [19/Aug/2021 20:29:18] "[36mGET /static/js/bootstrap-dialog.min.js HTTP/1.1[0m" 304 -
+2021-08-19 20:29:18,517 [INFO] 10.0.0.181 - - [19/Aug/2021 20:29:18] "[36mGET /static/js/jquery-ui.js HTTP/1.1[0m" 304 -
+2021-08-19 20:29:18,518 [INFO] 10.0.0.181 - - [19/Aug/2021 20:29:18] "[36mGET /static/js/qa-utils.js HTTP/1.1[0m" 304 -
+2021-08-19 20:29:18,519 [INFO] 10.0.0.181 - - [19/Aug/2021 20:29:18] "[36mGET /static/js/projects.js HTTP/1.1[0m" 304 -
+2021-08-19 20:29:20,631 [INFO] BEGIN (implicit)
+2021-08-19 20:29:20,631 [INFO] SELECT project.id AS project_id, project.name AS project_name, project.description AS project_description, project.date AS project_date, project.train_ae_time AS project_train_ae_time, project.make_patches_time AS project_make_patches_time, project.iteration AS project_iteration, project.embed_iteration AS project_embed_iteration 
+FROM project 
+WHERE project.name = ?
+ LIMIT ? OFFSET ?
+2021-08-19 20:29:20,631 [INFO] ('sdag', 1, 0)
+2021-08-19 20:29:20,635 [INFO] SELECT image.id AS image_id, image."projId" AS "image_projId", image.name AS image_name, image.path AS image_path, image.height AS image_height, image.width AS image_width, image.date AS image_date, image.id = roi."imageId" AS rois, image.make_patches_time AS image_make_patches_time, image.npixel AS image_npixel, image.ppixel AS image_ppixel, image.nobjects AS image_nobjects, count(roi.id) AS "ROIs", count(roi.id) - ifnull(sum(roi."testingROI"), ?) AS "trainingROIs" 
+FROM image LEFT OUTER JOIN roi ON roi."imageId" = image.id 
+WHERE image."projId" = ? GROUP BY image.id
+2021-08-19 20:29:20,635 [INFO] (0, 1)
+2021-08-19 20:29:20,647 [INFO] ROLLBACK
+2021-08-19 20:29:20,648 [INFO] 10.0.0.181 - - [19/Aug/2021 20:29:20] "GET /sdag/images HTTP/1.1" 200 -
+2021-08-19 20:29:20,677 [INFO] 10.0.0.181 - - [19/Aug/2021 20:29:20] "[36mGET /static/css/bootstrap.min.css HTTP/1.1[0m" 304 -
+2021-08-19 20:29:20,681 [INFO] 10.0.0.181 - - [19/Aug/2021 20:29:20] "[36mGET /static/css/dropzone.css HTTP/1.1[0m" 304 -
+2021-08-19 20:29:20,682 [INFO] 10.0.0.181 - - [19/Aug/2021 20:29:20] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2021-08-19 20:29:20,683 [INFO] 10.0.0.181 - - [19/Aug/2021 20:29:20] "[36mGET /static/css/basic.css HTTP/1.1[0m" 304 -
+2021-08-19 20:29:20,686 [INFO] BEGIN (implicit)
+2021-08-19 20:29:20,688 [INFO] 10.0.0.181 - - [19/Aug/2021 20:29:20] "[36mGET /static/css/imageselection.css HTTP/1.1[0m" 304 -
+2021-08-19 20:29:20,688 [INFO] SELECT project.id AS project_id, project.name AS project_name, project.description AS project_description, project.date AS project_date, project.train_ae_time AS project_train_ae_time, project.make_patches_time AS project_make_patches_time, project.iteration AS project_iteration, project.embed_iteration AS project_embed_iteration 
+FROM project 
+WHERE project.name = ?
+ LIMIT ? OFFSET ?
+2021-08-19 20:29:20,691 [INFO] ('sdag', 1, 0)
+2021-08-19 20:29:20,693 [INFO] 10.0.0.181 - - [19/Aug/2021 20:29:20] "[36mGET /static/css/logs.css HTTP/1.1[0m" 304 -
+2021-08-19 20:29:20,693 [INFO] 10.0.0.181 - - [19/Aug/2021 20:29:20] "[36mGET /static/css/modal.css HTTP/1.1[0m" 304 -
+2021-08-19 20:29:20,695 [INFO] 10.0.0.181 - - [19/Aug/2021 20:29:20] "[36mGET /static/css/jquery-ui.css HTTP/1.1[0m" 304 -
+2021-08-19 20:29:20,704 [INFO] 10.0.0.181 - - [19/Aug/2021 20:29:20] "[36mGET /static/js/angular.min.js HTTP/1.1[0m" 304 -
+2021-08-19 20:29:20,703 [INFO] ROLLBACK
+2021-08-19 20:29:20,706 [INFO] 10.0.0.181 - - [19/Aug/2021 20:29:20] "[36mGET /static/js/bootstrap.min.js HTTP/1.1[0m" 304 -
+2021-08-19 20:29:20,706 [INFO] 10.0.0.181 - - [19/Aug/2021 20:29:20] "GET /sdag/images/images-main HTTP/1.1" 200 -
+2021-08-19 20:29:20,707 [INFO] 10.0.0.181 - - [19/Aug/2021 20:29:20] "[36mGET /static/js/jquery-3.5.0.js HTTP/1.1[0m" 304 -
+2021-08-19 20:29:20,709 [INFO] 10.0.0.181 - - [19/Aug/2021 20:29:20] "[36mGET /static/js/bootstrap-dialog.min.js HTTP/1.1[0m" 304 -
+2021-08-19 20:29:20,710 [INFO] 10.0.0.181 - - [19/Aug/2021 20:29:20] "[36mGET /static/js/projectPageScript.js HTTP/1.1[0m" 304 -
+2021-08-19 20:29:20,711 [INFO] 10.0.0.181 - - [19/Aug/2021 20:29:20] "[36mGET /static/js/dropzone.js HTTP/1.1[0m" 304 -
+2021-08-19 20:29:20,713 [INFO] 10.0.0.181 - - [19/Aug/2021 20:29:20] "[36mGET /static/js/qa-utils.js HTTP/1.1[0m" 304 -
+2021-08-19 20:29:20,713 [INFO] 10.0.0.181 - - [19/Aug/2021 20:29:20] "[36mGET /static/js/jquery-ui.js HTTP/1.1[0m" 304 -
+2021-08-19 20:29:20,947 [INFO] BEGIN (implicit)
+2021-08-19 20:29:20,948 [INFO] SELECT count(*) AS count_1 
+FROM image 
+WHERE image."projId" = ?
+2021-08-19 20:29:20,948 [INFO] ('1',)
+2021-08-19 20:29:20,949 [INFO] ROLLBACK
+2021-08-19 20:29:20,949 [INFO] 10.0.0.181 - - [19/Aug/2021 20:29:20] "GET /api/db/image?q=%7B%22filters%22%3A%5B%7B%22name%22%3A%22projId%22%2C%22op%22%3A%22%3D%3D%22%2C%22val%22%3A%221%22%7D%5D%7D HTTP/1.1" 200 -
+2021-08-19 20:29:20,954 [INFO] BEGIN (implicit)
+2021-08-19 20:29:20,955 [INFO] SELECT count(*) AS count_1 
+FROM project 
+WHERE project.id = ?
+2021-08-19 20:29:20,955 [INFO] ('1',)
+2021-08-19 20:29:20,956 [INFO] SELECT project.id AS project_id, project.name AS project_name, project.description AS project_description, project.date AS project_date, project.train_ae_time AS project_train_ae_time, project.make_patches_time AS project_make_patches_time, project.iteration AS project_iteration, project.embed_iteration AS project_embed_iteration 
+FROM project 
+WHERE project.id = ? ORDER BY project.id ASC
+ LIMIT ? OFFSET ?
+2021-08-19 20:29:20,956 [INFO] ('1', 1, 0)
+2021-08-19 20:29:20,957 [INFO] SELECT job.id AS job_id, job."projId" AS "job_projId", job."imageId" AS "job_imageId", job.cmd AS job_cmd, job.params AS job_params, job.status AS job_status, job.retval AS job_retval, job.start_date AS job_start_date 
+FROM job 
+WHERE ? = job."projId"
+2021-08-19 20:29:20,957 [INFO] (1,)
+2021-08-19 20:29:20,958 [INFO] SELECT image.id AS image_id, image."projId" AS "image_projId", image.name AS image_name, image.path AS image_path, image.height AS image_height, image.width AS image_width, image.ppixel AS image_ppixel, image.npixel AS image_npixel, image.nobjects AS image_nobjects, image.date AS image_date, image.make_patches_time AS image_make_patches_time, image.superpixel_time AS image_superpixel_time, image.superpixel_modelid AS image_superpixel_modelid 
+FROM image 
+WHERE ? = image."projId"
+2021-08-19 20:29:20,959 [INFO] (1,)
+2021-08-19 20:29:20,959 [INFO] ROLLBACK
+2021-08-19 20:29:20,960 [INFO] 10.0.0.181 - - [19/Aug/2021 20:29:20] "GET /api/db/project?q=%7B%22filters%22%3A%5B%7B%22name%22%3A%22id%22%2C%22op%22%3A%22%3D%3D%22%2C%22val%22%3A%221%22%7D%5D%7D HTTP/1.1" 200 -
+2021-08-19 20:29:20,964 [INFO] BEGIN (implicit)
+2021-08-19 20:29:20,965 [INFO] SELECT count(*) AS count_1 
+FROM project 
+WHERE project.id = ?
+2021-08-19 20:29:20,965 [INFO] ('1',)
+2021-08-19 20:29:20,966 [INFO] SELECT project.id AS project_id, project.name AS project_name, project.description AS project_description, project.date AS project_date, project.train_ae_time AS project_train_ae_time, project.make_patches_time AS project_make_patches_time, project.iteration AS project_iteration, project.embed_iteration AS project_embed_iteration 
+FROM project 
+WHERE project.id = ? ORDER BY project.id ASC
+ LIMIT ? OFFSET ?
+2021-08-19 20:29:20,966 [INFO] ('1', 1, 0)
+2021-08-19 20:29:20,966 [INFO] SELECT job.id AS job_id, job."projId" AS "job_projId", job."imageId" AS "job_imageId", job.cmd AS job_cmd, job.params AS job_params, job.status AS job_status, job.retval AS job_retval, job.start_date AS job_start_date 
+FROM job 
+WHERE ? = job."projId"
+2021-08-19 20:29:20,967 [INFO] (1,)
+2021-08-19 20:29:20,967 [INFO] SELECT image.id AS image_id, image."projId" AS "image_projId", image.name AS image_name, image.path AS image_path, image.height AS image_height, image.width AS image_width, image.ppixel AS image_ppixel, image.npixel AS image_npixel, image.nobjects AS image_nobjects, image.date AS image_date, image.make_patches_time AS image_make_patches_time, image.superpixel_time AS image_superpixel_time, image.superpixel_modelid AS image_superpixel_modelid 
+FROM image 
+WHERE ? = image."projId"
+2021-08-19 20:29:20,967 [INFO] (1,)
+2021-08-19 20:29:20,968 [INFO] ROLLBACK
+2021-08-19 20:29:20,968 [INFO] 10.0.0.181 - - [19/Aug/2021 20:29:20] "GET /api/db/project?q=%7B%22filters%22%3A%5B%7B%22name%22%3A%22id%22%2C%22op%22%3A%22%3D%3D%22%2C%22val%22%3A%221%22%7D%5D%7D HTTP/1.1" 200 -
+2021-08-19 20:29:20,973 [INFO] BEGIN (implicit)
+2021-08-19 20:29:20,973 [INFO] SELECT count(*) AS count_1 
+FROM project 
+WHERE project.id = ?
+2021-08-19 20:29:20,973 [INFO] ('1',)
+2021-08-19 20:29:20,974 [INFO] SELECT project.id AS project_id, project.name AS project_name, project.description AS project_description, project.date AS project_date, project.train_ae_time AS project_train_ae_time, project.make_patches_time AS project_make_patches_time, project.iteration AS project_iteration, project.embed_iteration AS project_embed_iteration 
+FROM project 
+WHERE project.id = ? ORDER BY project.id ASC
+ LIMIT ? OFFSET ?
+2021-08-19 20:29:20,974 [INFO] ('1', 1, 0)
+2021-08-19 20:29:20,975 [INFO] SELECT job.id AS job_id, job."projId" AS "job_projId", job."imageId" AS "job_imageId", job.cmd AS job_cmd, job.params AS job_params, job.status AS job_status, job.retval AS job_retval, job.start_date AS job_start_date 
+FROM job 
+WHERE ? = job."projId"
+2021-08-19 20:29:20,975 [INFO] (1,)
+2021-08-19 20:29:20,975 [INFO] SELECT image.id AS image_id, image."projId" AS "image_projId", image.name AS image_name, image.path AS image_path, image.height AS image_height, image.width AS image_width, image.ppixel AS image_ppixel, image.npixel AS image_npixel, image.nobjects AS image_nobjects, image.date AS image_date, image.make_patches_time AS image_make_patches_time, image.superpixel_time AS image_superpixel_time, image.superpixel_modelid AS image_superpixel_modelid 
+FROM image 
+WHERE ? = image."projId"
+2021-08-19 20:29:20,976 [INFO] (1,)
+2021-08-19 20:29:20,976 [INFO] ROLLBACK
+2021-08-19 20:29:20,976 [INFO] 10.0.0.181 - - [19/Aug/2021 20:29:20] "GET /api/db/project?q=%7B%22filters%22%3A%5B%7B%22name%22%3A%22id%22%2C%22op%22%3A%22%3D%3D%22%2C%22val%22%3A%221%22%7D%5D%7D HTTP/1.1" 200 -
+2021-08-19 20:29:20,982 [INFO] BEGIN (implicit)
+2021-08-19 20:29:20,982 [INFO] SELECT count(*) AS count_1 
+FROM project 
+WHERE project.id = ?
+2021-08-19 20:29:20,982 [INFO] ('1',)
+2021-08-19 20:29:20,983 [INFO] SELECT project.id AS project_id, project.name AS project_name, project.description AS project_description, project.date AS project_date, project.train_ae_time AS project_train_ae_time, project.make_patches_time AS project_make_patches_time, project.iteration AS project_iteration, project.embed_iteration AS project_embed_iteration 
+FROM project 
+WHERE project.id = ? ORDER BY project.id ASC
+ LIMIT ? OFFSET ?
+2021-08-19 20:29:20,983 [INFO] ('1', 1, 0)
+2021-08-19 20:29:20,984 [INFO] SELECT job.id AS job_id, job."projId" AS "job_projId", job."imageId" AS "job_imageId", job.cmd AS job_cmd, job.params AS job_params, job.status AS job_status, job.retval AS job_retval, job.start_date AS job_start_date 
+FROM job 
+WHERE ? = job."projId"
+2021-08-19 20:29:20,984 [INFO] (1,)
+2021-08-19 20:29:20,984 [INFO] SELECT image.id AS image_id, image."projId" AS "image_projId", image.name AS image_name, image.path AS image_path, image.height AS image_height, image.width AS image_width, image.ppixel AS image_ppixel, image.npixel AS image_npixel, image.nobjects AS image_nobjects, image.date AS image_date, image.make_patches_time AS image_make_patches_time, image.superpixel_time AS image_superpixel_time, image.superpixel_modelid AS image_superpixel_modelid 
+FROM image 
+WHERE ? = image."projId"
+2021-08-19 20:29:20,984 [INFO] (1,)
+2021-08-19 20:29:20,985 [INFO] ROLLBACK
+2021-08-19 20:29:20,986 [INFO] 10.0.0.181 - - [19/Aug/2021 20:29:20] "GET /api/db/project?q=%7B%22filters%22%3A%5B%7B%22name%22%3A%22id%22%2C%22op%22%3A%22%3D%3D%22%2C%22val%22%3A%221%22%7D%5D%7D HTTP/1.1" 200 -
+2021-08-19 20:29:20,991 [INFO] BEGIN (implicit)
+2021-08-19 20:29:20,992 [INFO] SELECT count(*) AS count_1 
+FROM job 
+WHERE job."projId" = ? AND job."imageId" IS NULL AND job.cmd = ? AND job.status IN (?, ?)
+ LIMIT ? OFFSET ?
+2021-08-19 20:29:20,992 [INFO] ('1', 'make_patches', 'RUNNING', 'QUEUE', 1, 0)
+2021-08-19 20:29:20,994 [INFO] SELECT count(*) AS count_1 
+FROM (SELECT job.id AS job_id, job."projId" AS "job_projId", job."imageId" AS "job_imageId", job.cmd AS job_cmd, job.params AS job_params, job.status AS job_status, job.retval AS job_retval, job.start_date AS job_start_date 
+FROM job 
+WHERE job."projId" = ? AND job."imageId" IS NULL AND job.cmd = ? AND job.status IN (?, ?) ORDER BY job.id ASC
+ LIMIT ? OFFSET ?) AS anon_1
+2021-08-19 20:29:20,994 [INFO] ('1', 'make_patches', 'RUNNING', 'QUEUE', 1, 0)
+2021-08-19 20:29:20,995 [INFO] ROLLBACK
+2021-08-19 20:29:20,995 [INFO] 10.0.0.181 - - [19/Aug/2021 20:29:20] "GET /api/db/job?q=%7B%22filters%22%3A%5B%7B%22name%22%3A%22projId%22%2C%22op%22%3A%22%3D%3D%22%2C%22val%22%3A%221%22%7D%2C%7B%22name%22%3A%22imageId%22%2C%22op%22%3A%22is_null%22%7D%2C%7B%22name%22%3A%22cmd%22%2C%22op%22%3A%22%3D%3D%22%2C%22val%22%3A%22make_patches%22%7D%2C%7B%22name%22%3A%22status%22%2C%22op%22%3A%22in%22%2C%22val%22%3A%5B%22RUNNING%22%2C%22QUEUE%22%5D%7D%5D%2C%22limit%22%3A1%7D HTTP/1.1" 200 -
+2021-08-19 20:29:21,000 [INFO] BEGIN (implicit)
+2021-08-19 20:29:21,001 [INFO] SELECT count(*) AS count_1 
+FROM job 
+WHERE job."projId" = ? AND job."imageId" IS NULL AND job.cmd = ? AND job.status IN (?, ?)
+ LIMIT ? OFFSET ?
+2021-08-19 20:29:21,001 [INFO] ('1', 'train_autoencoder', 'RUNNING', 'QUEUE', 1, 0)
+2021-08-19 20:29:21,003 [INFO] SELECT count(*) AS count_1 
+FROM (SELECT job.id AS job_id, job."projId" AS "job_projId", job."imageId" AS "job_imageId", job.cmd AS job_cmd, job.params AS job_params, job.status AS job_status, job.retval AS job_retval, job.start_date AS job_start_date 
+FROM job 
+WHERE job."projId" = ? AND job."imageId" IS NULL AND job.cmd = ? AND job.status IN (?, ?) ORDER BY job.id ASC
+ LIMIT ? OFFSET ?) AS anon_1
+2021-08-19 20:29:21,003 [INFO] ('1', 'train_autoencoder', 'RUNNING', 'QUEUE', 1, 0)
+2021-08-19 20:29:21,004 [INFO] ROLLBACK
+2021-08-19 20:29:21,004 [INFO] 10.0.0.181 - - [19/Aug/2021 20:29:21] "GET /api/db/job?q=%7B%22filters%22%3A%5B%7B%22name%22%3A%22projId%22%2C%22op%22%3A%22%3D%3D%22%2C%22val%22%3A%221%22%7D%2C%7B%22name%22%3A%22imageId%22%2C%22op%22%3A%22is_null%22%7D%2C%7B%22name%22%3A%22cmd%22%2C%22op%22%3A%22%3D%3D%22%2C%22val%22%3A%22train_autoencoder%22%7D%2C%7B%22name%22%3A%22status%22%2C%22op%22%3A%22in%22%2C%22val%22%3A%5B%22RUNNING%22%2C%22QUEUE%22%5D%7D%5D%2C%22limit%22%3A1%7D HTTP/1.1" 200 -
+2021-08-19 20:29:21,010 [INFO] BEGIN (implicit)
+2021-08-19 20:29:21,011 [INFO] SELECT count(*) AS count_1 
+FROM job 
+WHERE job."projId" = ? AND job."imageId" IS NULL AND job.cmd = ? AND job.status IN (?, ?)
+ LIMIT ? OFFSET ?
+2021-08-19 20:29:21,011 [INFO] ('1', 'make_embed', 'RUNNING', 'QUEUE', 1, 0)
+2021-08-19 20:29:21,013 [INFO] SELECT count(*) AS count_1 
+FROM (SELECT job.id AS job_id, job."projId" AS "job_projId", job."imageId" AS "job_imageId", job.cmd AS job_cmd, job.params AS job_params, job.status AS job_status, job.retval AS job_retval, job.start_date AS job_start_date 
+FROM job 
+WHERE job."projId" = ? AND job."imageId" IS NULL AND job.cmd = ? AND job.status IN (?, ?) ORDER BY job.id ASC
+ LIMIT ? OFFSET ?) AS anon_1
+2021-08-19 20:29:21,013 [INFO] ('1', 'make_embed', 'RUNNING', 'QUEUE', 1, 0)
+2021-08-19 20:29:21,014 [INFO] ROLLBACK
+2021-08-19 20:29:21,014 [INFO] 10.0.0.181 - - [19/Aug/2021 20:29:21] "GET /api/db/job?q=%7B%22filters%22%3A%5B%7B%22name%22%3A%22projId%22%2C%22op%22%3A%22%3D%3D%22%2C%22val%22%3A%221%22%7D%2C%7B%22name%22%3A%22imageId%22%2C%22op%22%3A%22is_null%22%7D%2C%7B%22name%22%3A%22cmd%22%2C%22op%22%3A%22%3D%3D%22%2C%22val%22%3A%22make_embed%22%7D%2C%7B%22name%22%3A%22status%22%2C%22op%22%3A%22in%22%2C%22val%22%3A%5B%22RUNNING%22%2C%22QUEUE%22%5D%7D%5D%2C%22limit%22%3A1%7D HTTP/1.1" 200 -
+2021-08-19 20:29:37,848 [INFO] Initializing database
+2021-08-19 20:29:37,854 [INFO] SELECT CAST('test plain returns' AS VARCHAR(60)) AS anon_1
+2021-08-19 20:29:37,854 [INFO] ()
+2021-08-19 20:29:37,854 [INFO] SELECT CAST('test unicode returns' AS VARCHAR(60)) AS anon_1
+2021-08-19 20:29:37,855 [INFO] ()
+2021-08-19 20:29:37,855 [INFO] PRAGMA main.table_info("project")
+2021-08-19 20:29:37,855 [INFO] ()
+2021-08-19 20:29:37,855 [INFO] PRAGMA main.table_info("image")
+2021-08-19 20:29:37,855 [INFO] ()
+2021-08-19 20:29:37,856 [INFO] PRAGMA main.table_info("roi")
+2021-08-19 20:29:37,856 [INFO] ()
+2021-08-19 20:29:37,856 [INFO] PRAGMA main.table_info("job")
+2021-08-19 20:29:37,856 [INFO] ()
+2021-08-19 20:29:37,856 [INFO] PRAGMA main.table_info("jobid_base")
+2021-08-19 20:29:37,856 [INFO] ()
+2021-08-19 20:29:37,856 [INFO] PRAGMA temp.table_info("jobid_base")
+2021-08-19 20:29:37,857 [INFO] ()
+2021-08-19 20:29:37,857 [INFO] 
+CREATE TABLE jobid_base (
+	id INTEGER NOT NULL, 
+	timestamp TEXT, 
+	procout TEXT, 
+	PRIMARY KEY (id)
+)
+
+
+2021-08-19 20:29:37,857 [INFO] ()
+2021-08-19 20:29:37,894 [INFO] COMMIT
+2021-08-19 20:29:37,895 [INFO] pragma journal_mode=wal;
+2021-08-19 20:29:37,895 [INFO] ()
+2021-08-19 20:29:37,896 [INFO] BEGIN (implicit)
+2021-08-19 20:29:37,896 [INFO] SELECT name FROM sqlite_master WHERE type='table' and name like 'jobid_%' ORDER BY name
+2021-08-19 20:29:37,897 [INFO] ()
+2021-08-19 20:29:37,897 [INFO] Dropping jobid_table jobid_base
+2021-08-19 20:29:37,897 [INFO] DROP TABLE IF EXISTS jobid_base
+2021-08-19 20:29:37,897 [INFO] ()
+2021-08-19 20:29:37,901 [INFO] COMMIT
+2021-08-19 20:29:37,902 [INFO] Clearing stale jobs
+2021-08-19 20:29:37,909 [INFO] BEGIN (implicit)
+2021-08-19 20:29:37,909 [INFO] DELETE FROM job WHERE job.status = ?
+2021-08-19 20:29:37,909 [INFO] ('QUEUE',)
+2021-08-19 20:29:37,910 [INFO] DELETE FROM job WHERE job.status = ?
+2021-08-19 20:29:37,910 [INFO] ('RUNNING',)
+2021-08-19 20:29:37,910 [INFO] COMMIT
+2021-08-19 20:29:37,911 [INFO] Deleted 0 queued jobs.
+2021-08-19 20:29:37,925 [INFO] Starting up worker pool.
+2021-08-19 20:29:37,943 [WARNING]  * Running on all addresses.
+   WARNING: This is a development server. Do not use it in a production deployment.
+2021-08-19 20:29:37,943 [INFO]  * Running on http://10.0.0.181:5555/ (Press CTRL+C to quit)
+2021-08-19 20:29:42,145 [INFO] BEGIN (implicit)
+2021-08-19 20:29:42,146 [INFO] SELECT project.name AS project_name, project.date AS project_date, project.iteration AS project_iteration, project.description AS project_description, project.id AS project_id, project.id = image."projId" AS images, count(roi.id) AS "nROIs", count(roi.id) - ifnull(sum(roi."testingROI"), ?) AS "nTrainingROIs", count(distinct(image.id)) AS "nImages", ifnull(sum(distinct(image.nobjects)), ?) AS "nObjects" 
+FROM project LEFT OUTER JOIN image ON image."projId" = project.id LEFT OUTER JOIN roi ON roi."imageId" = image.id GROUP BY project.id
+2021-08-19 20:29:42,146 [INFO] (0, 0)
+2021-08-19 20:29:42,159 [INFO] 10.0.0.181 - - [19/Aug/2021 20:29:42] "GET / HTTP/1.1" 200 -
+2021-08-19 20:29:42,229 [INFO] 10.0.0.181 - - [19/Aug/2021 20:29:42] "[36mGET /static/css/bootstrap.min.css HTTP/1.1[0m" 304 -
+2021-08-19 20:29:42,238 [INFO] 10.0.0.181 - - [19/Aug/2021 20:29:42] "[36mGET /static/js/angular.min.js HTTP/1.1[0m" 304 -
+2021-08-19 20:29:42,239 [INFO] 10.0.0.181 - - [19/Aug/2021 20:29:42] "[36mGET /static/css/jquery-ui.css HTTP/1.1[0m" 304 -
+2021-08-19 20:29:42,239 [INFO] 10.0.0.181 - - [19/Aug/2021 20:29:42] "[36mGET /static/js/jquery-3.5.0.js HTTP/1.1[0m" 304 -
+2021-08-19 20:29:42,241 [INFO] 10.0.0.181 - - [19/Aug/2021 20:29:42] "[36mGET /static/css/bootstrap-dialog.min.css HTTP/1.1[0m" 304 -
+2021-08-19 20:29:42,242 [INFO] 10.0.0.181 - - [19/Aug/2021 20:29:42] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2021-08-19 20:29:42,244 [INFO] 10.0.0.181 - - [19/Aug/2021 20:29:42] "[36mGET /static/js/bootstrap.min.js HTTP/1.1[0m" 304 -
+2021-08-19 20:29:42,248 [INFO] 10.0.0.181 - - [19/Aug/2021 20:29:42] "[36mGET /static/js/bootstrap-dialog.min.js HTTP/1.1[0m" 304 -
+2021-08-19 20:29:42,249 [INFO] 10.0.0.181 - - [19/Aug/2021 20:29:42] "[36mGET /static/js/qa-utils.js HTTP/1.1[0m" 304 -
+2021-08-19 20:29:42,252 [INFO] 10.0.0.181 - - [19/Aug/2021 20:29:42] "[36mGET /static/js/jquery-ui.js HTTP/1.1[0m" 304 -
+2021-08-19 20:29:42,253 [INFO] 10.0.0.181 - - [19/Aug/2021 20:29:42] "[36mGET /static/js/projects.js HTTP/1.1[0m" 304 -
+2021-08-19 20:29:45,438 [INFO] 10.0.0.181 - - [19/Aug/2021 20:29:45] "GET /static/css/images/ui-icons_444444_256x240.png HTTP/1.1" 200 -
+2021-08-19 20:29:45,438 [INFO] 10.0.0.181 - - [19/Aug/2021 20:29:45] "GET /static/css/images/ui-icons_777777_256x240.png HTTP/1.1" 200 -
+2021-08-19 20:29:46,504 [INFO] BEGIN (implicit)
+2021-08-19 20:29:46,505 [INFO] SELECT project.id AS project_id, project.name AS project_name, project.description AS project_description, project.date AS project_date, project.train_ae_time AS project_train_ae_time, project.make_patches_time AS project_make_patches_time, project.iteration AS project_iteration, project.embed_iteration AS project_embed_iteration 
+FROM project 
+WHERE project.id = ?
+ LIMIT ? OFFSET ?
+2021-08-19 20:29:46,505 [INFO] ('1', 1, 0)
+2021-08-19 20:29:46,508 [INFO] SELECT image.id AS image_id, image."projId" AS "image_projId", image.name AS image_name, image.path AS image_path, image.height AS image_height, image.width AS image_width, image.ppixel AS image_ppixel, image.npixel AS image_npixel, image.nobjects AS image_nobjects, image.date AS image_date, image.make_patches_time AS image_make_patches_time, image.superpixel_time AS image_superpixel_time, image.superpixel_modelid AS image_superpixel_modelid 
+FROM image 
+WHERE image."projId" = ?
+2021-08-19 20:29:46,509 [INFO] (1,)
+2021-08-19 20:29:46,510 [INFO] DELETE FROM job WHERE job."projId" = ?
+2021-08-19 20:29:46,510 [INFO] (1,)
+2021-08-19 20:29:46,512 [INFO] SELECT project.id AS project_id, project.name AS project_name, project.description AS project_description, project.date AS project_date, project.train_ae_time AS project_train_ae_time, project.make_patches_time AS project_make_patches_time, project.iteration AS project_iteration, project.embed_iteration AS project_embed_iteration 
+FROM project 
+WHERE project.id = ?
+ LIMIT ? OFFSET ?
+2021-08-19 20:29:46,512 [INFO] ('1', 1, 0)
+2021-08-19 20:29:46,514 [INFO] SELECT image.id AS image_id, image."projId" AS "image_projId", image.name AS image_name, image.path AS image_path, image.height AS image_height, image.width AS image_width, image.ppixel AS image_ppixel, image.npixel AS image_npixel, image.nobjects AS image_nobjects, image.date AS image_date, image.make_patches_time AS image_make_patches_time, image.superpixel_time AS image_superpixel_time, image.superpixel_modelid AS image_superpixel_modelid 
+FROM image 
+WHERE ? = image."projId"
+2021-08-19 20:29:46,514 [INFO] (1,)
+2021-08-19 20:29:46,515 [INFO] SELECT job.id AS job_id, job."projId" AS "job_projId", job."imageId" AS "job_imageId", job.cmd AS job_cmd, job.params AS job_params, job.status AS job_status, job.retval AS job_retval, job.start_date AS job_start_date 
+FROM job 
+WHERE ? = job."projId"
+2021-08-19 20:29:46,516 [INFO] (1,)
+2021-08-19 20:29:46,516 [INFO] DELETE FROM project WHERE project.id = ?
+2021-08-19 20:29:46,517 [INFO] (1,)
+2021-08-19 20:29:46,517 [INFO] COMMIT
+2021-08-19 20:29:46,519 [INFO] 10.0.0.181 - - [19/Aug/2021 20:29:46] "[35m[1mDELETE /api/db/project/1 HTTP/1.1[0m" 204 -
+2021-08-19 20:29:51,384 [INFO] BEGIN (implicit)
+2021-08-19 20:29:51,385 [INFO] SELECT project.id AS project_id, project.name AS project_name, project.description AS project_description, project.date AS project_date, project.train_ae_time AS project_train_ae_time, project.make_patches_time AS project_make_patches_time, project.iteration AS project_iteration, project.embed_iteration AS project_embed_iteration 
+FROM project 
+WHERE project.name = ?
+ LIMIT ? OFFSET ?
+2021-08-19 20:29:51,386 [INFO] ('adf', 1, 0)
+2021-08-19 20:29:51,388 [INFO] INSERT INTO project (name, description, date, train_ae_time, make_patches_time, iteration, embed_iteration) VALUES (?, ?, ?, ?, ?, ?, ?)
+2021-08-19 20:29:51,388 [INFO] ('adf', '', '2021-08-19 19:29:51.000000', None, None, -1, -1)
+2021-08-19 20:29:51,389 [INFO] COMMIT
+2021-08-19 20:29:51,390 [INFO] BEGIN (implicit)
+2021-08-19 20:29:51,391 [INFO] SELECT project.id AS project_id, project.name AS project_name, project.description AS project_description, project.date AS project_date, project.train_ae_time AS project_train_ae_time, project.make_patches_time AS project_make_patches_time, project.iteration AS project_iteration, project.embed_iteration AS project_embed_iteration 
+FROM project 
+WHERE project.id = ?
+2021-08-19 20:29:51,391 [INFO] (1,)
+2021-08-19 20:29:51,392 [INFO] SELECT job.id AS job_id, job."projId" AS "job_projId", job."imageId" AS "job_imageId", job.cmd AS job_cmd, job.params AS job_params, job.status AS job_status, job.retval AS job_retval, job.start_date AS job_start_date 
+FROM job 
+WHERE ? = job."projId"
+2021-08-19 20:29:51,392 [INFO] (1,)
+2021-08-19 20:29:51,393 [INFO] SELECT image.id AS image_id, image."projId" AS "image_projId", image.name AS image_name, image.path AS image_path, image.height AS image_height, image.width AS image_width, image.ppixel AS image_ppixel, image.npixel AS image_npixel, image.nobjects AS image_nobjects, image.date AS image_date, image.make_patches_time AS image_make_patches_time, image.superpixel_time AS image_superpixel_time, image.superpixel_modelid AS image_superpixel_modelid 
+FROM image 
+WHERE ? = image."projId"
+2021-08-19 20:29:51,393 [INFO] (1,)
+2021-08-19 20:29:51,394 [INFO] ROLLBACK
+2021-08-19 20:29:51,394 [INFO] 10.0.0.181 - - [19/Aug/2021 20:29:51] "[35m[1mPOST /api/db/project HTTP/1.1[0m" 201 -
+2021-08-19 20:29:53,751 [INFO] BEGIN (implicit)
+2021-08-19 20:29:53,752 [INFO] SELECT project.id AS project_id, project.name AS project_name, project.description AS project_description, project.date AS project_date, project.train_ae_time AS project_train_ae_time, project.make_patches_time AS project_make_patches_time, project.iteration AS project_iteration, project.embed_iteration AS project_embed_iteration 
+FROM project 
+WHERE project.name = ?
+ LIMIT ? OFFSET ?
+2021-08-19 20:29:53,752 [INFO] ('adf', 1, 0)
+2021-08-19 20:29:53,754 [INFO] SELECT image.id AS image_id, image."projId" AS "image_projId", image.name AS image_name, image.path AS image_path, image.height AS image_height, image.width AS image_width, image.date AS image_date, image.id = roi."imageId" AS rois, image.make_patches_time AS image_make_patches_time, image.npixel AS image_npixel, image.ppixel AS image_ppixel, image.nobjects AS image_nobjects, count(roi.id) AS "ROIs", count(roi.id) - ifnull(sum(roi."testingROI"), ?) AS "trainingROIs" 
+FROM image LEFT OUTER JOIN roi ON roi."imageId" = image.id 
+WHERE image."projId" = ? GROUP BY image.id
+2021-08-19 20:29:53,754 [INFO] (0, 1)
+2021-08-19 20:29:53,767 [INFO] ROLLBACK
+2021-08-19 20:29:53,767 [INFO] 10.0.0.181 - - [19/Aug/2021 20:29:53] "GET /adf/images HTTP/1.1" 200 -
+2021-08-19 20:29:53,799 [INFO] 10.0.0.181 - - [19/Aug/2021 20:29:53] "[36mGET /static/css/bootstrap.min.css HTTP/1.1[0m" 304 -
+2021-08-19 20:29:53,805 [INFO] 10.0.0.181 - - [19/Aug/2021 20:29:53] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2021-08-19 20:29:53,807 [INFO] 10.0.0.181 - - [19/Aug/2021 20:29:53] "[36mGET /static/css/basic.css HTTP/1.1[0m" 304 -
+2021-08-19 20:29:53,808 [INFO] 10.0.0.181 - - [19/Aug/2021 20:29:53] "[36mGET /static/css/dropzone.css HTTP/1.1[0m" 304 -
+2021-08-19 20:29:53,810 [INFO] 10.0.0.181 - - [19/Aug/2021 20:29:53] "[36mGET /static/css/imageselection.css HTTP/1.1[0m" 304 -
+2021-08-19 20:29:53,821 [INFO] 10.0.0.181 - - [19/Aug/2021 20:29:53] "[36mGET /static/css/modal.css HTTP/1.1[0m" 304 -
+2021-08-19 20:29:53,821 [INFO] 10.0.0.181 - - [19/Aug/2021 20:29:53] "[36mGET /static/css/jquery-ui.css HTTP/1.1[0m" 304 -
+2021-08-19 20:29:53,819 [INFO] BEGIN (implicit)
+2021-08-19 20:29:53,822 [INFO] 10.0.0.181 - - [19/Aug/2021 20:29:53] "[36mGET /static/css/logs.css HTTP/1.1[0m" 304 -
+2021-08-19 20:29:53,823 [INFO] 10.0.0.181 - - [19/Aug/2021 20:29:53] "[36mGET /static/js/jquery-3.5.0.js HTTP/1.1[0m" 304 -
+2021-08-19 20:29:53,823 [INFO] 10.0.0.181 - - [19/Aug/2021 20:29:53] "[36mGET /static/js/angular.min.js HTTP/1.1[0m" 304 -
+2021-08-19 20:29:53,825 [INFO] SELECT project.id AS project_id, project.name AS project_name, project.description AS project_description, project.date AS project_date, project.train_ae_time AS project_train_ae_time, project.make_patches_time AS project_make_patches_time, project.iteration AS project_iteration, project.embed_iteration AS project_embed_iteration 
+FROM project 
+WHERE project.name = ?
+ LIMIT ? OFFSET ?
+2021-08-19 20:29:53,827 [INFO] 10.0.0.181 - - [19/Aug/2021 20:29:53] "[36mGET /static/js/bootstrap.min.js HTTP/1.1[0m" 304 -
+2021-08-19 20:29:53,829 [INFO] ('adf', 1, 0)
+2021-08-19 20:29:53,831 [INFO] 10.0.0.181 - - [19/Aug/2021 20:29:53] "[36mGET /static/js/bootstrap-dialog.min.js HTTP/1.1[0m" 304 -
+2021-08-19 20:29:53,833 [INFO] 10.0.0.181 - - [19/Aug/2021 20:29:53] "[36mGET /static/js/projectPageScript.js HTTP/1.1[0m" 304 -
+2021-08-19 20:29:53,845 [INFO] ROLLBACK
+2021-08-19 20:29:53,846 [INFO] 10.0.0.181 - - [19/Aug/2021 20:29:53] "[36mGET /static/js/dropzone.js HTTP/1.1[0m" 304 -
+2021-08-19 20:29:53,848 [INFO] 10.0.0.181 - - [19/Aug/2021 20:29:53] "GET /adf/images/images-main HTTP/1.1" 200 -
+2021-08-19 20:29:53,848 [INFO] 10.0.0.181 - - [19/Aug/2021 20:29:53] "[36mGET /static/js/jquery-ui.js HTTP/1.1[0m" 304 -
+2021-08-19 20:29:53,849 [INFO] 10.0.0.181 - - [19/Aug/2021 20:29:53] "[36mGET /static/js/qa-utils.js HTTP/1.1[0m" 304 -
+2021-08-19 20:29:54,098 [INFO] BEGIN (implicit)
+2021-08-19 20:29:54,098 [INFO] SELECT count(*) AS count_1 
+FROM image 
+WHERE image."projId" = ?
+2021-08-19 20:29:54,099 [INFO] ('1',)
+2021-08-19 20:29:54,099 [INFO] ROLLBACK
+2021-08-19 20:29:54,100 [INFO] 10.0.0.181 - - [19/Aug/2021 20:29:54] "GET /api/db/image?q=%7B%22filters%22%3A%5B%7B%22name%22%3A%22projId%22%2C%22op%22%3A%22%3D%3D%22%2C%22val%22%3A%221%22%7D%5D%7D HTTP/1.1" 200 -
+2021-08-19 20:29:54,104 [INFO] BEGIN (implicit)
+2021-08-19 20:29:54,105 [INFO] SELECT count(*) AS count_1 
+FROM project 
+WHERE project.id = ?
+2021-08-19 20:29:54,105 [INFO] ('1',)
+2021-08-19 20:29:54,106 [INFO] SELECT project.id AS project_id, project.name AS project_name, project.description AS project_description, project.date AS project_date, project.train_ae_time AS project_train_ae_time, project.make_patches_time AS project_make_patches_time, project.iteration AS project_iteration, project.embed_iteration AS project_embed_iteration 
+FROM project 
+WHERE project.id = ? ORDER BY project.id ASC
+ LIMIT ? OFFSET ?
+2021-08-19 20:29:54,106 [INFO] ('1', 1, 0)
+2021-08-19 20:29:54,106 [INFO] SELECT job.id AS job_id, job."projId" AS "job_projId", job."imageId" AS "job_imageId", job.cmd AS job_cmd, job.params AS job_params, job.status AS job_status, job.retval AS job_retval, job.start_date AS job_start_date 
+FROM job 
+WHERE ? = job."projId"
+2021-08-19 20:29:54,106 [INFO] (1,)
+2021-08-19 20:29:54,107 [INFO] SELECT image.id AS image_id, image."projId" AS "image_projId", image.name AS image_name, image.path AS image_path, image.height AS image_height, image.width AS image_width, image.ppixel AS image_ppixel, image.npixel AS image_npixel, image.nobjects AS image_nobjects, image.date AS image_date, image.make_patches_time AS image_make_patches_time, image.superpixel_time AS image_superpixel_time, image.superpixel_modelid AS image_superpixel_modelid 
+FROM image 
+WHERE ? = image."projId"
+2021-08-19 20:29:54,107 [INFO] (1,)
+2021-08-19 20:29:54,108 [INFO] ROLLBACK
+2021-08-19 20:29:54,108 [INFO] 10.0.0.181 - - [19/Aug/2021 20:29:54] "GET /api/db/project?q=%7B%22filters%22%3A%5B%7B%22name%22%3A%22id%22%2C%22op%22%3A%22%3D%3D%22%2C%22val%22%3A%221%22%7D%5D%7D HTTP/1.1" 200 -
+2021-08-19 20:29:54,113 [INFO] BEGIN (implicit)
+2021-08-19 20:29:54,113 [INFO] SELECT count(*) AS count_1 
+FROM project 
+WHERE project.id = ?
+2021-08-19 20:29:54,113 [INFO] ('1',)
+2021-08-19 20:29:54,114 [INFO] SELECT project.id AS project_id, project.name AS project_name, project.description AS project_description, project.date AS project_date, project.train_ae_time AS project_train_ae_time, project.make_patches_time AS project_make_patches_time, project.iteration AS project_iteration, project.embed_iteration AS project_embed_iteration 
+FROM project 
+WHERE project.id = ? ORDER BY project.id ASC
+ LIMIT ? OFFSET ?
+2021-08-19 20:29:54,114 [INFO] ('1', 1, 0)
+2021-08-19 20:29:54,115 [INFO] SELECT job.id AS job_id, job."projId" AS "job_projId", job."imageId" AS "job_imageId", job.cmd AS job_cmd, job.params AS job_params, job.status AS job_status, job.retval AS job_retval, job.start_date AS job_start_date 
+FROM job 
+WHERE ? = job."projId"
+2021-08-19 20:29:54,115 [INFO] (1,)
+2021-08-19 20:29:54,115 [INFO] SELECT image.id AS image_id, image."projId" AS "image_projId", image.name AS image_name, image.path AS image_path, image.height AS image_height, image.width AS image_width, image.ppixel AS image_ppixel, image.npixel AS image_npixel, image.nobjects AS image_nobjects, image.date AS image_date, image.make_patches_time AS image_make_patches_time, image.superpixel_time AS image_superpixel_time, image.superpixel_modelid AS image_superpixel_modelid 
+FROM image 
+WHERE ? = image."projId"
+2021-08-19 20:29:54,115 [INFO] (1,)
+2021-08-19 20:29:54,116 [INFO] ROLLBACK
+2021-08-19 20:29:54,116 [INFO] 10.0.0.181 - - [19/Aug/2021 20:29:54] "GET /api/db/project?q=%7B%22filters%22%3A%5B%7B%22name%22%3A%22id%22%2C%22op%22%3A%22%3D%3D%22%2C%22val%22%3A%221%22%7D%5D%7D HTTP/1.1" 200 -
+2021-08-19 20:29:54,122 [INFO] BEGIN (implicit)
+2021-08-19 20:29:54,122 [INFO] SELECT count(*) AS count_1 
+FROM project 
+WHERE project.id = ?
+2021-08-19 20:29:54,122 [INFO] ('1',)
+2021-08-19 20:29:54,123 [INFO] SELECT project.id AS project_id, project.name AS project_name, project.description AS project_description, project.date AS project_date, project.train_ae_time AS project_train_ae_time, project.make_patches_time AS project_make_patches_time, project.iteration AS project_iteration, project.embed_iteration AS project_embed_iteration 
+FROM project 
+WHERE project.id = ? ORDER BY project.id ASC
+ LIMIT ? OFFSET ?
+2021-08-19 20:29:54,123 [INFO] ('1', 1, 0)
+2021-08-19 20:29:54,124 [INFO] SELECT job.id AS job_id, job."projId" AS "job_projId", job."imageId" AS "job_imageId", job.cmd AS job_cmd, job.params AS job_params, job.status AS job_status, job.retval AS job_retval, job.start_date AS job_start_date 
+FROM job 
+WHERE ? = job."projId"
+2021-08-19 20:29:54,124 [INFO] (1,)
+2021-08-19 20:29:54,124 [INFO] SELECT image.id AS image_id, image."projId" AS "image_projId", image.name AS image_name, image.path AS image_path, image.height AS image_height, image.width AS image_width, image.ppixel AS image_ppixel, image.npixel AS image_npixel, image.nobjects AS image_nobjects, image.date AS image_date, image.make_patches_time AS image_make_patches_time, image.superpixel_time AS image_superpixel_time, image.superpixel_modelid AS image_superpixel_modelid 
+FROM image 
+WHERE ? = image."projId"
+2021-08-19 20:29:54,124 [INFO] (1,)
+2021-08-19 20:29:54,125 [INFO] ROLLBACK
+2021-08-19 20:29:54,126 [INFO] 10.0.0.181 - - [19/Aug/2021 20:29:54] "GET /api/db/project?q=%7B%22filters%22%3A%5B%7B%22name%22%3A%22id%22%2C%22op%22%3A%22%3D%3D%22%2C%22val%22%3A%221%22%7D%5D%7D HTTP/1.1" 200 -
+2021-08-19 20:29:54,131 [INFO] BEGIN (implicit)
+2021-08-19 20:29:54,131 [INFO] SELECT count(*) AS count_1 
+FROM project 
+WHERE project.id = ?
+2021-08-19 20:29:54,131 [INFO] ('1',)
+2021-08-19 20:29:54,132 [INFO] SELECT project.id AS project_id, project.name AS project_name, project.description AS project_description, project.date AS project_date, project.train_ae_time AS project_train_ae_time, project.make_patches_time AS project_make_patches_time, project.iteration AS project_iteration, project.embed_iteration AS project_embed_iteration 
+FROM project 
+WHERE project.id = ? ORDER BY project.id ASC
+ LIMIT ? OFFSET ?
+2021-08-19 20:29:54,132 [INFO] ('1', 1, 0)
+2021-08-19 20:29:54,133 [INFO] SELECT job.id AS job_id, job."projId" AS "job_projId", job."imageId" AS "job_imageId", job.cmd AS job_cmd, job.params AS job_params, job.status AS job_status, job.retval AS job_retval, job.start_date AS job_start_date 
+FROM job 
+WHERE ? = job."projId"
+2021-08-19 20:29:54,133 [INFO] (1,)
+2021-08-19 20:29:54,134 [INFO] SELECT image.id AS image_id, image."projId" AS "image_projId", image.name AS image_name, image.path AS image_path, image.height AS image_height, image.width AS image_width, image.ppixel AS image_ppixel, image.npixel AS image_npixel, image.nobjects AS image_nobjects, image.date AS image_date, image.make_patches_time AS image_make_patches_time, image.superpixel_time AS image_superpixel_time, image.superpixel_modelid AS image_superpixel_modelid 
+FROM image 
+WHERE ? = image."projId"
+2021-08-19 20:29:54,134 [INFO] (1,)
+2021-08-19 20:29:54,134 [INFO] ROLLBACK
+2021-08-19 20:29:54,135 [INFO] 10.0.0.181 - - [19/Aug/2021 20:29:54] "GET /api/db/project?q=%7B%22filters%22%3A%5B%7B%22name%22%3A%22id%22%2C%22op%22%3A%22%3D%3D%22%2C%22val%22%3A%221%22%7D%5D%7D HTTP/1.1" 200 -
+2021-08-19 20:29:54,140 [INFO] BEGIN (implicit)
+2021-08-19 20:29:54,140 [INFO] SELECT count(*) AS count_1 
+FROM job 
+WHERE job."projId" = ? AND job."imageId" IS NULL AND job.cmd = ? AND job.status IN (?, ?)
+ LIMIT ? OFFSET ?
+2021-08-19 20:29:54,140 [INFO] ('1', 'make_patches', 'RUNNING', 'QUEUE', 1, 0)
+2021-08-19 20:29:54,142 [INFO] SELECT count(*) AS count_1 
+FROM (SELECT job.id AS job_id, job."projId" AS "job_projId", job."imageId" AS "job_imageId", job.cmd AS job_cmd, job.params AS job_params, job.status AS job_status, job.retval AS job_retval, job.start_date AS job_start_date 
+FROM job 
+WHERE job."projId" = ? AND job."imageId" IS NULL AND job.cmd = ? AND job.status IN (?, ?) ORDER BY job.id ASC
+ LIMIT ? OFFSET ?) AS anon_1
+2021-08-19 20:29:54,142 [INFO] ('1', 'make_patches', 'RUNNING', 'QUEUE', 1, 0)
+2021-08-19 20:29:54,143 [INFO] ROLLBACK
+2021-08-19 20:29:54,143 [INFO] 10.0.0.181 - - [19/Aug/2021 20:29:54] "GET /api/db/job?q=%7B%22filters%22%3A%5B%7B%22name%22%3A%22projId%22%2C%22op%22%3A%22%3D%3D%22%2C%22val%22%3A%221%22%7D%2C%7B%22name%22%3A%22imageId%22%2C%22op%22%3A%22is_null%22%7D%2C%7B%22name%22%3A%22cmd%22%2C%22op%22%3A%22%3D%3D%22%2C%22val%22%3A%22make_patches%22%7D%2C%7B%22name%22%3A%22status%22%2C%22op%22%3A%22in%22%2C%22val%22%3A%5B%22RUNNING%22%2C%22QUEUE%22%5D%7D%5D%2C%22limit%22%3A1%7D HTTP/1.1" 200 -
+2021-08-19 20:29:54,149 [INFO] BEGIN (implicit)
+2021-08-19 20:29:54,150 [INFO] SELECT count(*) AS count_1 
+FROM job 
+WHERE job."projId" = ? AND job."imageId" IS NULL AND job.cmd = ? AND job.status IN (?, ?)
+ LIMIT ? OFFSET ?
+2021-08-19 20:29:54,150 [INFO] ('1', 'train_autoencoder', 'RUNNING', 'QUEUE', 1, 0)
+2021-08-19 20:29:54,152 [INFO] SELECT count(*) AS count_1 
+FROM (SELECT job.id AS job_id, job."projId" AS "job_projId", job."imageId" AS "job_imageId", job.cmd AS job_cmd, job.params AS job_params, job.status AS job_status, job.retval AS job_retval, job.start_date AS job_start_date 
+FROM job 
+WHERE job."projId" = ? AND job."imageId" IS NULL AND job.cmd = ? AND job.status IN (?, ?) ORDER BY job.id ASC
+ LIMIT ? OFFSET ?) AS anon_1
+2021-08-19 20:29:54,152 [INFO] ('1', 'train_autoencoder', 'RUNNING', 'QUEUE', 1, 0)
+2021-08-19 20:29:54,153 [INFO] ROLLBACK
+2021-08-19 20:29:54,153 [INFO] 10.0.0.181 - - [19/Aug/2021 20:29:54] "GET /api/db/job?q=%7B%22filters%22%3A%5B%7B%22name%22%3A%22projId%22%2C%22op%22%3A%22%3D%3D%22%2C%22val%22%3A%221%22%7D%2C%7B%22name%22%3A%22imageId%22%2C%22op%22%3A%22is_null%22%7D%2C%7B%22name%22%3A%22cmd%22%2C%22op%22%3A%22%3D%3D%22%2C%22val%22%3A%22train_autoencoder%22%7D%2C%7B%22name%22%3A%22status%22%2C%22op%22%3A%22in%22%2C%22val%22%3A%5B%22RUNNING%22%2C%22QUEUE%22%5D%7D%5D%2C%22limit%22%3A1%7D HTTP/1.1" 200 -
+2021-08-19 20:29:54,158 [INFO] BEGIN (implicit)
+2021-08-19 20:29:54,159 [INFO] SELECT count(*) AS count_1 
+FROM job 
+WHERE job."projId" = ? AND job."imageId" IS NULL AND job.cmd = ? AND job.status IN (?, ?)
+ LIMIT ? OFFSET ?
+2021-08-19 20:29:54,159 [INFO] ('1', 'make_embed', 'RUNNING', 'QUEUE', 1, 0)
+2021-08-19 20:29:54,161 [INFO] SELECT count(*) AS count_1 
+FROM (SELECT job.id AS job_id, job."projId" AS "job_projId", job."imageId" AS "job_imageId", job.cmd AS job_cmd, job.params AS job_params, job.status AS job_status, job.retval AS job_retval, job.start_date AS job_start_date 
+FROM job 
+WHERE job."projId" = ? AND job."imageId" IS NULL AND job.cmd = ? AND job.status IN (?, ?) ORDER BY job.id ASC
+ LIMIT ? OFFSET ?) AS anon_1
+2021-08-19 20:29:54,161 [INFO] ('1', 'make_embed', 'RUNNING', 'QUEUE', 1, 0)
+2021-08-19 20:29:54,162 [INFO] ROLLBACK
+2021-08-19 20:29:54,162 [INFO] 10.0.0.181 - - [19/Aug/2021 20:29:54] "GET /api/db/job?q=%7B%22filters%22%3A%5B%7B%22name%22%3A%22projId%22%2C%22op%22%3A%22%3D%3D%22%2C%22val%22%3A%221%22%7D%2C%7B%22name%22%3A%22imageId%22%2C%22op%22%3A%22is_null%22%7D%2C%7B%22name%22%3A%22cmd%22%2C%22op%22%3A%22%3D%3D%22%2C%22val%22%3A%22make_embed%22%7D%2C%7B%22name%22%3A%22status%22%2C%22op%22%3A%22in%22%2C%22val%22%3A%5B%22RUNNING%22%2C%22QUEUE%22%5D%7D%5D%2C%22limit%22%3A1%7D HTTP/1.1" 200 -
+2021-08-19 20:30:06,541 [INFO] 10.0.0.181 - - [19/Aug/2021 20:30:06] "[36mGET /static/css/bootstrap.min.css HTTP/1.1[0m" 304 -
+2021-08-19 20:30:06,548 [INFO] 10.0.0.181 - - [19/Aug/2021 20:30:06] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2021-08-19 20:30:06,551 [INFO] 10.0.0.181 - - [19/Aug/2021 20:30:06] "[36mGET /static/css/imageselection.css HTTP/1.1[0m" 304 -
+2021-08-19 20:30:06,551 [INFO] 10.0.0.181 - - [19/Aug/2021 20:30:06] "[36mGET /static/css/dropzone.css HTTP/1.1[0m" 304 -
+2021-08-19 20:30:06,555 [INFO] 10.0.0.181 - - [19/Aug/2021 20:30:06] "[36mGET /static/css/basic.css HTTP/1.1[0m" 304 -
+2021-08-19 20:30:06,557 [INFO] 10.0.0.181 - - [19/Aug/2021 20:30:06] "[36mGET /static/css/logs.css HTTP/1.1[0m" 304 -
+2021-08-19 20:30:06,558 [INFO] 10.0.0.181 - - [19/Aug/2021 20:30:06] "[36mGET /static/css/modal.css HTTP/1.1[0m" 304 -
+2021-08-19 20:30:06,559 [INFO] 10.0.0.181 - - [19/Aug/2021 20:30:06] "[36mGET /static/css/jquery-ui.css HTTP/1.1[0m" 304 -
+2021-08-19 20:30:06,563 [INFO] 10.0.0.181 - - [19/Aug/2021 20:30:06] "[36mGET /static/js/angular.min.js HTTP/1.1[0m" 304 -
+2021-08-19 20:30:06,564 [INFO] BEGIN (implicit)
+2021-08-19 20:30:06,567 [INFO] 10.0.0.181 - - [19/Aug/2021 20:30:06] "[36mGET /static/js/bootstrap.min.js HTTP/1.1[0m" 304 -
+2021-08-19 20:30:06,567 [INFO] 10.0.0.181 - - [19/Aug/2021 20:30:06] "[36mGET /static/js/jquery-3.5.0.js HTTP/1.1[0m" 304 -
+2021-08-19 20:30:06,566 [INFO] SELECT project.id AS project_id, project.name AS project_name, project.description AS project_description, project.date AS project_date, project.train_ae_time AS project_train_ae_time, project.make_patches_time AS project_make_patches_time, project.iteration AS project_iteration, project.embed_iteration AS project_embed_iteration 
+FROM project 
+WHERE project.name = ?
+ LIMIT ? OFFSET ?
+2021-08-19 20:30:06,570 [INFO] 10.0.0.181 - - [19/Aug/2021 20:30:06] "[36mGET /static/js/bootstrap-dialog.min.js HTTP/1.1[0m" 304 -
+2021-08-19 20:30:06,571 [INFO] 10.0.0.181 - - [19/Aug/2021 20:30:06] "[36mGET /static/js/projectPageScript.js HTTP/1.1[0m" 304 -
+2021-08-19 20:30:06,572 [INFO] ('adf', 1, 0)
+2021-08-19 20:30:06,575 [INFO] 10.0.0.181 - - [19/Aug/2021 20:30:06] "[36mGET /static/js/dropzone.js HTTP/1.1[0m" 304 -
+2021-08-19 20:30:06,577 [INFO] 10.0.0.181 - - [19/Aug/2021 20:30:06] "[36mGET /static/js/qa-utils.js HTTP/1.1[0m" 304 -
+2021-08-19 20:30:06,579 [INFO] 10.0.0.181 - - [19/Aug/2021 20:30:06] "[36mGET /static/js/jquery-ui.js HTTP/1.1[0m" 304 -
+2021-08-19 20:30:06,580 [INFO] ROLLBACK
+2021-08-19 20:30:06,581 [INFO] 10.0.0.181 - - [19/Aug/2021 20:30:06] "GET /adf/images/images-main HTTP/1.1" 200 -
+2021-08-19 20:30:06,927 [INFO] BEGIN (implicit)
+2021-08-19 20:30:06,928 [INFO] SELECT count(*) AS count_1 
+FROM image 
+WHERE image."projId" = ?
+2021-08-19 20:30:06,928 [INFO] ('1',)
+2021-08-19 20:30:06,929 [INFO] ROLLBACK
+2021-08-19 20:30:06,929 [INFO] 10.0.0.181 - - [19/Aug/2021 20:30:06] "GET /api/db/image?q=%7B%22filters%22%3A%5B%7B%22name%22%3A%22projId%22%2C%22op%22%3A%22%3D%3D%22%2C%22val%22%3A%221%22%7D%5D%7D HTTP/1.1" 200 -
+2021-08-19 20:30:06,934 [INFO] BEGIN (implicit)
+2021-08-19 20:30:06,935 [INFO] SELECT count(*) AS count_1 
+FROM project 
+WHERE project.id = ?
+2021-08-19 20:30:06,935 [INFO] ('1',)
+2021-08-19 20:30:06,936 [INFO] SELECT project.id AS project_id, project.name AS project_name, project.description AS project_description, project.date AS project_date, project.train_ae_time AS project_train_ae_time, project.make_patches_time AS project_make_patches_time, project.iteration AS project_iteration, project.embed_iteration AS project_embed_iteration 
+FROM project 
+WHERE project.id = ? ORDER BY project.id ASC
+ LIMIT ? OFFSET ?
+2021-08-19 20:30:06,936 [INFO] ('1', 1, 0)
+2021-08-19 20:30:06,937 [INFO] SELECT job.id AS job_id, job."projId" AS "job_projId", job."imageId" AS "job_imageId", job.cmd AS job_cmd, job.params AS job_params, job.status AS job_status, job.retval AS job_retval, job.start_date AS job_start_date 
+FROM job 
+WHERE ? = job."projId"
+2021-08-19 20:30:06,937 [INFO] (1,)
+2021-08-19 20:30:06,937 [INFO] SELECT image.id AS image_id, image."projId" AS "image_projId", image.name AS image_name, image.path AS image_path, image.height AS image_height, image.width AS image_width, image.ppixel AS image_ppixel, image.npixel AS image_npixel, image.nobjects AS image_nobjects, image.date AS image_date, image.make_patches_time AS image_make_patches_time, image.superpixel_time AS image_superpixel_time, image.superpixel_modelid AS image_superpixel_modelid 
+FROM image 
+WHERE ? = image."projId"
+2021-08-19 20:30:06,937 [INFO] (1,)
+2021-08-19 20:30:06,938 [INFO] ROLLBACK
+2021-08-19 20:30:06,939 [INFO] 10.0.0.181 - - [19/Aug/2021 20:30:06] "GET /api/db/project?q=%7B%22filters%22%3A%5B%7B%22name%22%3A%22id%22%2C%22op%22%3A%22%3D%3D%22%2C%22val%22%3A%221%22%7D%5D%7D HTTP/1.1" 200 -
+2021-08-19 20:30:06,945 [INFO] BEGIN (implicit)
+2021-08-19 20:30:06,945 [INFO] SELECT count(*) AS count_1 
+FROM project 
+WHERE project.id = ?
+2021-08-19 20:30:06,945 [INFO] ('1',)
+2021-08-19 20:30:06,946 [INFO] SELECT project.id AS project_id, project.name AS project_name, project.description AS project_description, project.date AS project_date, project.train_ae_time AS project_train_ae_time, project.make_patches_time AS project_make_patches_time, project.iteration AS project_iteration, project.embed_iteration AS project_embed_iteration 
+FROM project 
+WHERE project.id = ? ORDER BY project.id ASC
+ LIMIT ? OFFSET ?
+2021-08-19 20:30:06,946 [INFO] ('1', 1, 0)
+2021-08-19 20:30:06,947 [INFO] SELECT job.id AS job_id, job."projId" AS "job_projId", job."imageId" AS "job_imageId", job.cmd AS job_cmd, job.params AS job_params, job.status AS job_status, job.retval AS job_retval, job.start_date AS job_start_date 
+FROM job 
+WHERE ? = job."projId"
+2021-08-19 20:30:06,947 [INFO] (1,)
+2021-08-19 20:30:06,948 [INFO] SELECT image.id AS image_id, image."projId" AS "image_projId", image.name AS image_name, image.path AS image_path, image.height AS image_height, image.width AS image_width, image.ppixel AS image_ppixel, image.npixel AS image_npixel, image.nobjects AS image_nobjects, image.date AS image_date, image.make_patches_time AS image_make_patches_time, image.superpixel_time AS image_superpixel_time, image.superpixel_modelid AS image_superpixel_modelid 
+FROM image 
+WHERE ? = image."projId"
+2021-08-19 20:30:06,948 [INFO] (1,)
+2021-08-19 20:30:06,949 [INFO] ROLLBACK
+2021-08-19 20:30:06,949 [INFO] 10.0.0.181 - - [19/Aug/2021 20:30:06] "GET /api/db/project?q=%7B%22filters%22%3A%5B%7B%22name%22%3A%22id%22%2C%22op%22%3A%22%3D%3D%22%2C%22val%22%3A%221%22%7D%5D%7D HTTP/1.1" 200 -
+2021-08-19 20:30:06,955 [INFO] BEGIN (implicit)
+2021-08-19 20:30:06,955 [INFO] SELECT count(*) AS count_1 
+FROM project 
+WHERE project.id = ?
+2021-08-19 20:30:06,956 [INFO] ('1',)
+2021-08-19 20:30:06,957 [INFO] SELECT project.id AS project_id, project.name AS project_name, project.description AS project_description, project.date AS project_date, project.train_ae_time AS project_train_ae_time, project.make_patches_time AS project_make_patches_time, project.iteration AS project_iteration, project.embed_iteration AS project_embed_iteration 
+FROM project 
+WHERE project.id = ? ORDER BY project.id ASC
+ LIMIT ? OFFSET ?
+2021-08-19 20:30:06,957 [INFO] ('1', 1, 0)
+2021-08-19 20:30:06,957 [INFO] SELECT job.id AS job_id, job."projId" AS "job_projId", job."imageId" AS "job_imageId", job.cmd AS job_cmd, job.params AS job_params, job.status AS job_status, job.retval AS job_retval, job.start_date AS job_start_date 
+FROM job 
+WHERE ? = job."projId"
+2021-08-19 20:30:06,957 [INFO] (1,)
+2021-08-19 20:30:06,958 [INFO] SELECT image.id AS image_id, image."projId" AS "image_projId", image.name AS image_name, image.path AS image_path, image.height AS image_height, image.width AS image_width, image.ppixel AS image_ppixel, image.npixel AS image_npixel, image.nobjects AS image_nobjects, image.date AS image_date, image.make_patches_time AS image_make_patches_time, image.superpixel_time AS image_superpixel_time, image.superpixel_modelid AS image_superpixel_modelid 
+FROM image 
+WHERE ? = image."projId"
+2021-08-19 20:30:06,958 [INFO] (1,)
+2021-08-19 20:30:06,959 [INFO] ROLLBACK
+2021-08-19 20:30:06,959 [INFO] 10.0.0.181 - - [19/Aug/2021 20:30:06] "GET /api/db/project?q=%7B%22filters%22%3A%5B%7B%22name%22%3A%22id%22%2C%22op%22%3A%22%3D%3D%22%2C%22val%22%3A%221%22%7D%5D%7D HTTP/1.1" 200 -
+2021-08-19 20:30:06,965 [INFO] BEGIN (implicit)
+2021-08-19 20:30:06,965 [INFO] SELECT count(*) AS count_1 
+FROM project 
+WHERE project.id = ?
+2021-08-19 20:30:06,965 [INFO] ('1',)
+2021-08-19 20:30:06,966 [INFO] SELECT project.id AS project_id, project.name AS project_name, project.description AS project_description, project.date AS project_date, project.train_ae_time AS project_train_ae_time, project.make_patches_time AS project_make_patches_time, project.iteration AS project_iteration, project.embed_iteration AS project_embed_iteration 
+FROM project 
+WHERE project.id = ? ORDER BY project.id ASC
+ LIMIT ? OFFSET ?
+2021-08-19 20:30:06,966 [INFO] ('1', 1, 0)
+2021-08-19 20:30:06,967 [INFO] SELECT job.id AS job_id, job."projId" AS "job_projId", job."imageId" AS "job_imageId", job.cmd AS job_cmd, job.params AS job_params, job.status AS job_status, job.retval AS job_retval, job.start_date AS job_start_date 
+FROM job 
+WHERE ? = job."projId"
+2021-08-19 20:30:06,967 [INFO] (1,)
+2021-08-19 20:30:06,968 [INFO] SELECT image.id AS image_id, image."projId" AS "image_projId", image.name AS image_name, image.path AS image_path, image.height AS image_height, image.width AS image_width, image.ppixel AS image_ppixel, image.npixel AS image_npixel, image.nobjects AS image_nobjects, image.date AS image_date, image.make_patches_time AS image_make_patches_time, image.superpixel_time AS image_superpixel_time, image.superpixel_modelid AS image_superpixel_modelid 
+FROM image 
+WHERE ? = image."projId"
+2021-08-19 20:30:06,968 [INFO] (1,)
+2021-08-19 20:30:06,969 [INFO] ROLLBACK
+2021-08-19 20:30:06,969 [INFO] 10.0.0.181 - - [19/Aug/2021 20:30:06] "GET /api/db/project?q=%7B%22filters%22%3A%5B%7B%22name%22%3A%22id%22%2C%22op%22%3A%22%3D%3D%22%2C%22val%22%3A%221%22%7D%5D%7D HTTP/1.1" 200 -
+2021-08-19 20:30:06,975 [INFO] BEGIN (implicit)
+2021-08-19 20:30:06,976 [INFO] SELECT count(*) AS count_1 
+FROM job 
+WHERE job."projId" = ? AND job."imageId" IS NULL AND job.cmd = ? AND job.status IN (?, ?)
+ LIMIT ? OFFSET ?
+2021-08-19 20:30:06,976 [INFO] ('1', 'make_patches', 'RUNNING', 'QUEUE', 1, 0)
+2021-08-19 20:30:06,978 [INFO] SELECT count(*) AS count_1 
+FROM (SELECT job.id AS job_id, job."projId" AS "job_projId", job."imageId" AS "job_imageId", job.cmd AS job_cmd, job.params AS job_params, job.status AS job_status, job.retval AS job_retval, job.start_date AS job_start_date 
+FROM job 
+WHERE job."projId" = ? AND job."imageId" IS NULL AND job.cmd = ? AND job.status IN (?, ?) ORDER BY job.id ASC
+ LIMIT ? OFFSET ?) AS anon_1
+2021-08-19 20:30:06,979 [INFO] ('1', 'make_patches', 'RUNNING', 'QUEUE', 1, 0)
+2021-08-19 20:30:06,979 [INFO] ROLLBACK
+2021-08-19 20:30:06,980 [INFO] 10.0.0.181 - - [19/Aug/2021 20:30:06] "GET /api/db/job?q=%7B%22filters%22%3A%5B%7B%22name%22%3A%22projId%22%2C%22op%22%3A%22%3D%3D%22%2C%22val%22%3A%221%22%7D%2C%7B%22name%22%3A%22imageId%22%2C%22op%22%3A%22is_null%22%7D%2C%7B%22name%22%3A%22cmd%22%2C%22op%22%3A%22%3D%3D%22%2C%22val%22%3A%22make_patches%22%7D%2C%7B%22name%22%3A%22status%22%2C%22op%22%3A%22in%22%2C%22val%22%3A%5B%22RUNNING%22%2C%22QUEUE%22%5D%7D%5D%2C%22limit%22%3A1%7D HTTP/1.1" 200 -
+2021-08-19 20:30:06,985 [INFO] BEGIN (implicit)
+2021-08-19 20:30:06,986 [INFO] SELECT count(*) AS count_1 
+FROM job 
+WHERE job."projId" = ? AND job."imageId" IS NULL AND job.cmd = ? AND job.status IN (?, ?)
+ LIMIT ? OFFSET ?
+2021-08-19 20:30:06,986 [INFO] ('1', 'train_autoencoder', 'RUNNING', 'QUEUE', 1, 0)
+2021-08-19 20:30:06,988 [INFO] SELECT count(*) AS count_1 
+FROM (SELECT job.id AS job_id, job."projId" AS "job_projId", job."imageId" AS "job_imageId", job.cmd AS job_cmd, job.params AS job_params, job.status AS job_status, job.retval AS job_retval, job.start_date AS job_start_date 
+FROM job 
+WHERE job."projId" = ? AND job."imageId" IS NULL AND job.cmd = ? AND job.status IN (?, ?) ORDER BY job.id ASC
+ LIMIT ? OFFSET ?) AS anon_1
+2021-08-19 20:30:06,988 [INFO] ('1', 'train_autoencoder', 'RUNNING', 'QUEUE', 1, 0)
+2021-08-19 20:30:06,989 [INFO] ROLLBACK
+2021-08-19 20:30:06,989 [INFO] 10.0.0.181 - - [19/Aug/2021 20:30:06] "GET /api/db/job?q=%7B%22filters%22%3A%5B%7B%22name%22%3A%22projId%22%2C%22op%22%3A%22%3D%3D%22%2C%22val%22%3A%221%22%7D%2C%7B%22name%22%3A%22imageId%22%2C%22op%22%3A%22is_null%22%7D%2C%7B%22name%22%3A%22cmd%22%2C%22op%22%3A%22%3D%3D%22%2C%22val%22%3A%22train_autoencoder%22%7D%2C%7B%22name%22%3A%22status%22%2C%22op%22%3A%22in%22%2C%22val%22%3A%5B%22RUNNING%22%2C%22QUEUE%22%5D%7D%5D%2C%22limit%22%3A1%7D HTTP/1.1" 200 -
+2021-08-19 20:30:06,995 [INFO] BEGIN (implicit)
+2021-08-19 20:30:06,996 [INFO] SELECT count(*) AS count_1 
+FROM job 
+WHERE job."projId" = ? AND job."imageId" IS NULL AND job.cmd = ? AND job.status IN (?, ?)
+ LIMIT ? OFFSET ?
+2021-08-19 20:30:06,996 [INFO] ('1', 'make_embed', 'RUNNING', 'QUEUE', 1, 0)
+2021-08-19 20:30:06,998 [INFO] SELECT count(*) AS count_1 
+FROM (SELECT job.id AS job_id, job."projId" AS "job_projId", job."imageId" AS "job_imageId", job.cmd AS job_cmd, job.params AS job_params, job.status AS job_status, job.retval AS job_retval, job.start_date AS job_start_date 
+FROM job 
+WHERE job."projId" = ? AND job."imageId" IS NULL AND job.cmd = ? AND job.status IN (?, ?) ORDER BY job.id ASC
+ LIMIT ? OFFSET ?) AS anon_1
+2021-08-19 20:30:06,998 [INFO] ('1', 'make_embed', 'RUNNING', 'QUEUE', 1, 0)
+2021-08-19 20:30:06,999 [INFO] ROLLBACK
+2021-08-19 20:30:06,999 [INFO] 10.0.0.181 - - [19/Aug/2021 20:30:06] "GET /api/db/job?q=%7B%22filters%22%3A%5B%7B%22name%22%3A%22projId%22%2C%22op%22%3A%22%3D%3D%22%2C%22val%22%3A%221%22%7D%2C%7B%22name%22%3A%22imageId%22%2C%22op%22%3A%22is_null%22%7D%2C%7B%22name%22%3A%22cmd%22%2C%22op%22%3A%22%3D%3D%22%2C%22val%22%3A%22make_embed%22%7D%2C%7B%22name%22%3A%22status%22%2C%22op%22%3A%22in%22%2C%22val%22%3A%5B%22RUNNING%22%2C%22QUEUE%22%5D%7D%5D%2C%22limit%22%3A1%7D HTTP/1.1" 200 -
+2021-08-19 20:30:27,201 [INFO] BEGIN (implicit)
+2021-08-19 20:30:27,202 [INFO] SELECT project.name AS project_name, project.date AS project_date, project.iteration AS project_iteration, project.description AS project_description, project.id AS project_id, project.id = image."projId" AS images, count(roi.id) AS "nROIs", count(roi.id) - ifnull(sum(roi."testingROI"), ?) AS "nTrainingROIs", count(distinct(image.id)) AS "nImages", ifnull(sum(distinct(image.nobjects)), ?) AS "nObjects" 
+FROM project LEFT OUTER JOIN image ON image."projId" = project.id LEFT OUTER JOIN roi ON roi."imageId" = image.id GROUP BY project.id
+2021-08-19 20:30:27,202 [INFO] (0, 0)
+2021-08-19 20:30:27,204 [INFO] 10.0.0.181 - - [19/Aug/2021 20:30:27] "GET / HTTP/1.1" 200 -
+2021-08-19 20:30:27,233 [INFO] 10.0.0.181 - - [19/Aug/2021 20:30:27] "[36mGET /static/css/bootstrap.min.css HTTP/1.1[0m" 304 -
+2021-08-19 20:30:27,235 [INFO] 10.0.0.181 - - [19/Aug/2021 20:30:27] "[36mGET /static/css/bootstrap-dialog.min.css HTTP/1.1[0m" 304 -
+2021-08-19 20:30:27,237 [INFO] 10.0.0.181 - - [19/Aug/2021 20:30:27] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2021-08-19 20:30:27,239 [INFO] 10.0.0.181 - - [19/Aug/2021 20:30:27] "[36mGET /static/css/jquery-ui.css HTTP/1.1[0m" 304 -
+2021-08-19 20:30:27,241 [INFO] 10.0.0.181 - - [19/Aug/2021 20:30:27] "[36mGET /static/js/angular.min.js HTTP/1.1[0m" 304 -
+2021-08-19 20:30:27,243 [INFO] 10.0.0.181 - - [19/Aug/2021 20:30:27] "[36mGET /static/js/jquery-3.5.0.js HTTP/1.1[0m" 304 -
+2021-08-19 20:30:27,244 [INFO] 10.0.0.181 - - [19/Aug/2021 20:30:27] "[36mGET /static/js/bootstrap.min.js HTTP/1.1[0m" 304 -
+2021-08-19 20:30:27,246 [INFO] 10.0.0.181 - - [19/Aug/2021 20:30:27] "[36mGET /static/js/bootstrap-dialog.min.js HTTP/1.1[0m" 304 -
+2021-08-19 20:30:27,248 [INFO] 10.0.0.181 - - [19/Aug/2021 20:30:27] "[36mGET /static/js/qa-utils.js HTTP/1.1[0m" 304 -
+2021-08-19 20:30:27,249 [INFO] 10.0.0.181 - - [19/Aug/2021 20:30:27] "[36mGET /static/js/jquery-ui.js HTTP/1.1[0m" 304 -
+2021-08-19 20:30:27,250 [INFO] 10.0.0.181 - - [19/Aug/2021 20:30:27] "[36mGET /static/js/projects.js HTTP/1.1[0m" 304 -
+2021-08-19 20:30:36,834 [INFO] BEGIN (implicit)
+2021-08-19 20:30:36,834 [INFO] SELECT project.id AS project_id, project.name AS project_name, project.description AS project_description, project.date AS project_date, project.train_ae_time AS project_train_ae_time, project.make_patches_time AS project_make_patches_time, project.iteration AS project_iteration, project.embed_iteration AS project_embed_iteration 
+FROM project 
+WHERE project.name = ?
+ LIMIT ? OFFSET ?
+2021-08-19 20:30:36,834 [INFO] ('adf', 1, 0)
+2021-08-19 20:30:36,837 [INFO] SELECT image.id AS image_id, image."projId" AS "image_projId", image.name AS image_name, image.path AS image_path, image.height AS image_height, image.width AS image_width, image.date AS image_date, image.id = roi."imageId" AS rois, image.make_patches_time AS image_make_patches_time, image.npixel AS image_npixel, image.ppixel AS image_ppixel, image.nobjects AS image_nobjects, count(roi.id) AS "ROIs", count(roi.id) - ifnull(sum(roi."testingROI"), ?) AS "trainingROIs" 
+FROM image LEFT OUTER JOIN roi ON roi."imageId" = image.id 
+WHERE image."projId" = ? GROUP BY image.id
+2021-08-19 20:30:36,838 [INFO] (0, 1)
+2021-08-19 20:30:36,839 [INFO] ROLLBACK
+2021-08-19 20:30:36,840 [INFO] 10.0.0.181 - - [19/Aug/2021 20:30:36] "GET /adf/images HTTP/1.1" 200 -
+2021-08-19 20:30:36,868 [INFO] 10.0.0.181 - - [19/Aug/2021 20:30:36] "[36mGET /static/css/bootstrap.min.css HTTP/1.1[0m" 304 -
+2021-08-19 20:30:36,873 [INFO] 10.0.0.181 - - [19/Aug/2021 20:30:36] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2021-08-19 20:30:36,880 [INFO] 10.0.0.181 - - [19/Aug/2021 20:30:36] "[36mGET /static/css/dropzone.css HTTP/1.1[0m" 304 -
+2021-08-19 20:30:36,880 [INFO] BEGIN (implicit)
+2021-08-19 20:30:36,882 [INFO] 10.0.0.181 - - [19/Aug/2021 20:30:36] "[36mGET /static/css/basic.css HTTP/1.1[0m" 304 -
+2021-08-19 20:30:36,883 [INFO] SELECT project.id AS project_id, project.name AS project_name, project.description AS project_description, project.date AS project_date, project.train_ae_time AS project_train_ae_time, project.make_patches_time AS project_make_patches_time, project.iteration AS project_iteration, project.embed_iteration AS project_embed_iteration 
+FROM project 
+WHERE project.name = ?
+ LIMIT ? OFFSET ?
+2021-08-19 20:30:36,884 [INFO] ('adf', 1, 0)
+2021-08-19 20:30:36,886 [INFO] 10.0.0.181 - - [19/Aug/2021 20:30:36] "[36mGET /static/css/imageselection.css HTTP/1.1[0m" 304 -
+2021-08-19 20:30:36,887 [INFO] 10.0.0.181 - - [19/Aug/2021 20:30:36] "[36mGET /static/css/logs.css HTTP/1.1[0m" 304 -
+2021-08-19 20:30:36,888 [INFO] 10.0.0.181 - - [19/Aug/2021 20:30:36] "[36mGET /static/css/modal.css HTTP/1.1[0m" 304 -
+2021-08-19 20:30:36,889 [INFO] ROLLBACK
+2021-08-19 20:30:36,890 [INFO] 10.0.0.181 - - [19/Aug/2021 20:30:36] "[36mGET /static/css/jquery-ui.css HTTP/1.1[0m" 304 -
+2021-08-19 20:30:36,891 [INFO] 10.0.0.181 - - [19/Aug/2021 20:30:36] "[36mGET /static/js/angular.min.js HTTP/1.1[0m" 304 -
+2021-08-19 20:30:36,893 [INFO] 10.0.0.181 - - [19/Aug/2021 20:30:36] "GET /adf/images/images-main HTTP/1.1" 200 -
+2021-08-19 20:30:36,895 [INFO] 10.0.0.181 - - [19/Aug/2021 20:30:36] "[36mGET /static/js/bootstrap.min.js HTTP/1.1[0m" 304 -
+2021-08-19 20:30:36,896 [INFO] 10.0.0.181 - - [19/Aug/2021 20:30:36] "[36mGET /static/js/jquery-3.5.0.js HTTP/1.1[0m" 304 -
+2021-08-19 20:30:36,898 [INFO] 10.0.0.181 - - [19/Aug/2021 20:30:36] "[36mGET /static/js/bootstrap-dialog.min.js HTTP/1.1[0m" 304 -
+2021-08-19 20:30:36,900 [INFO] 10.0.0.181 - - [19/Aug/2021 20:30:36] "[36mGET /static/js/projectPageScript.js HTTP/1.1[0m" 304 -
+2021-08-19 20:30:36,901 [INFO] 10.0.0.181 - - [19/Aug/2021 20:30:36] "[36mGET /static/js/dropzone.js HTTP/1.1[0m" 304 -
+2021-08-19 20:30:36,903 [INFO] 10.0.0.181 - - [19/Aug/2021 20:30:36] "[36mGET /static/js/qa-utils.js HTTP/1.1[0m" 304 -
+2021-08-19 20:30:36,905 [INFO] 10.0.0.181 - - [19/Aug/2021 20:30:36] "[36mGET /static/js/jquery-ui.js HTTP/1.1[0m" 304 -
+2021-08-19 20:30:37,165 [INFO] BEGIN (implicit)
+2021-08-19 20:30:37,166 [INFO] SELECT count(*) AS count_1 
+FROM image 
+WHERE image."projId" = ?
+2021-08-19 20:30:37,166 [INFO] ('1',)
+2021-08-19 20:30:37,167 [INFO] ROLLBACK
+2021-08-19 20:30:37,167 [INFO] 10.0.0.181 - - [19/Aug/2021 20:30:37] "GET /api/db/image?q=%7B%22filters%22%3A%5B%7B%22name%22%3A%22projId%22%2C%22op%22%3A%22%3D%3D%22%2C%22val%22%3A%221%22%7D%5D%7D HTTP/1.1" 200 -
+2021-08-19 20:30:37,172 [INFO] BEGIN (implicit)
+2021-08-19 20:30:37,172 [INFO] SELECT count(*) AS count_1 
+FROM project 
+WHERE project.id = ?
+2021-08-19 20:30:37,172 [INFO] ('1',)
+2021-08-19 20:30:37,173 [INFO] SELECT project.id AS project_id, project.name AS project_name, project.description AS project_description, project.date AS project_date, project.train_ae_time AS project_train_ae_time, project.make_patches_time AS project_make_patches_time, project.iteration AS project_iteration, project.embed_iteration AS project_embed_iteration 
+FROM project 
+WHERE project.id = ? ORDER BY project.id ASC
+ LIMIT ? OFFSET ?
+2021-08-19 20:30:37,173 [INFO] ('1', 1, 0)
+2021-08-19 20:30:37,174 [INFO] SELECT job.id AS job_id, job."projId" AS "job_projId", job."imageId" AS "job_imageId", job.cmd AS job_cmd, job.params AS job_params, job.status AS job_status, job.retval AS job_retval, job.start_date AS job_start_date 
+FROM job 
+WHERE ? = job."projId"
+2021-08-19 20:30:37,174 [INFO] (1,)
+2021-08-19 20:30:37,175 [INFO] SELECT image.id AS image_id, image."projId" AS "image_projId", image.name AS image_name, image.path AS image_path, image.height AS image_height, image.width AS image_width, image.ppixel AS image_ppixel, image.npixel AS image_npixel, image.nobjects AS image_nobjects, image.date AS image_date, image.make_patches_time AS image_make_patches_time, image.superpixel_time AS image_superpixel_time, image.superpixel_modelid AS image_superpixel_modelid 
+FROM image 
+WHERE ? = image."projId"
+2021-08-19 20:30:37,175 [INFO] (1,)
+2021-08-19 20:30:37,176 [INFO] ROLLBACK
+2021-08-19 20:30:37,176 [INFO] 10.0.0.181 - - [19/Aug/2021 20:30:37] "GET /api/db/project?q=%7B%22filters%22%3A%5B%7B%22name%22%3A%22id%22%2C%22op%22%3A%22%3D%3D%22%2C%22val%22%3A%221%22%7D%5D%7D HTTP/1.1" 200 -
+2021-08-19 20:30:37,182 [INFO] BEGIN (implicit)
+2021-08-19 20:30:37,182 [INFO] SELECT count(*) AS count_1 
+FROM project 
+WHERE project.id = ?
+2021-08-19 20:30:37,182 [INFO] ('1',)
+2021-08-19 20:30:37,183 [INFO] SELECT project.id AS project_id, project.name AS project_name, project.description AS project_description, project.date AS project_date, project.train_ae_time AS project_train_ae_time, project.make_patches_time AS project_make_patches_time, project.iteration AS project_iteration, project.embed_iteration AS project_embed_iteration 
+FROM project 
+WHERE project.id = ? ORDER BY project.id ASC
+ LIMIT ? OFFSET ?
+2021-08-19 20:30:37,183 [INFO] ('1', 1, 0)
+2021-08-19 20:30:37,184 [INFO] SELECT job.id AS job_id, job."projId" AS "job_projId", job."imageId" AS "job_imageId", job.cmd AS job_cmd, job.params AS job_params, job.status AS job_status, job.retval AS job_retval, job.start_date AS job_start_date 
+FROM job 
+WHERE ? = job."projId"
+2021-08-19 20:30:37,184 [INFO] (1,)
+2021-08-19 20:30:37,185 [INFO] SELECT image.id AS image_id, image."projId" AS "image_projId", image.name AS image_name, image.path AS image_path, image.height AS image_height, image.width AS image_width, image.ppixel AS image_ppixel, image.npixel AS image_npixel, image.nobjects AS image_nobjects, image.date AS image_date, image.make_patches_time AS image_make_patches_time, image.superpixel_time AS image_superpixel_time, image.superpixel_modelid AS image_superpixel_modelid 
+FROM image 
+WHERE ? = image."projId"
+2021-08-19 20:30:37,185 [INFO] (1,)
+2021-08-19 20:30:37,185 [INFO] ROLLBACK
+2021-08-19 20:30:37,186 [INFO] 10.0.0.181 - - [19/Aug/2021 20:30:37] "GET /api/db/project?q=%7B%22filters%22%3A%5B%7B%22name%22%3A%22id%22%2C%22op%22%3A%22%3D%3D%22%2C%22val%22%3A%221%22%7D%5D%7D HTTP/1.1" 200 -
+2021-08-19 20:30:37,191 [INFO] BEGIN (implicit)
+2021-08-19 20:30:37,191 [INFO] SELECT count(*) AS count_1 
+FROM project 
+WHERE project.id = ?
+2021-08-19 20:30:37,191 [INFO] ('1',)
+2021-08-19 20:30:37,192 [INFO] SELECT project.id AS project_id, project.name AS project_name, project.description AS project_description, project.date AS project_date, project.train_ae_time AS project_train_ae_time, project.make_patches_time AS project_make_patches_time, project.iteration AS project_iteration, project.embed_iteration AS project_embed_iteration 
+FROM project 
+WHERE project.id = ? ORDER BY project.id ASC
+ LIMIT ? OFFSET ?
+2021-08-19 20:30:37,192 [INFO] ('1', 1, 0)
+2021-08-19 20:30:37,193 [INFO] SELECT job.id AS job_id, job."projId" AS "job_projId", job."imageId" AS "job_imageId", job.cmd AS job_cmd, job.params AS job_params, job.status AS job_status, job.retval AS job_retval, job.start_date AS job_start_date 
+FROM job 
+WHERE ? = job."projId"
+2021-08-19 20:30:37,193 [INFO] (1,)
+2021-08-19 20:30:37,193 [INFO] SELECT image.id AS image_id, image."projId" AS "image_projId", image.name AS image_name, image.path AS image_path, image.height AS image_height, image.width AS image_width, image.ppixel AS image_ppixel, image.npixel AS image_npixel, image.nobjects AS image_nobjects, image.date AS image_date, image.make_patches_time AS image_make_patches_time, image.superpixel_time AS image_superpixel_time, image.superpixel_modelid AS image_superpixel_modelid 
+FROM image 
+WHERE ? = image."projId"
+2021-08-19 20:30:37,194 [INFO] (1,)
+2021-08-19 20:30:37,194 [INFO] ROLLBACK
+2021-08-19 20:30:37,195 [INFO] 10.0.0.181 - - [19/Aug/2021 20:30:37] "GET /api/db/project?q=%7B%22filters%22%3A%5B%7B%22name%22%3A%22id%22%2C%22op%22%3A%22%3D%3D%22%2C%22val%22%3A%221%22%7D%5D%7D HTTP/1.1" 200 -
+2021-08-19 20:30:37,200 [INFO] BEGIN (implicit)
+2021-08-19 20:30:37,200 [INFO] SELECT count(*) AS count_1 
+FROM project 
+WHERE project.id = ?
+2021-08-19 20:30:37,200 [INFO] ('1',)
+2021-08-19 20:30:37,201 [INFO] SELECT project.id AS project_id, project.name AS project_name, project.description AS project_description, project.date AS project_date, project.train_ae_time AS project_train_ae_time, project.make_patches_time AS project_make_patches_time, project.iteration AS project_iteration, project.embed_iteration AS project_embed_iteration 
+FROM project 
+WHERE project.id = ? ORDER BY project.id ASC
+ LIMIT ? OFFSET ?
+2021-08-19 20:30:37,201 [INFO] ('1', 1, 0)
+2021-08-19 20:30:37,202 [INFO] SELECT job.id AS job_id, job."projId" AS "job_projId", job."imageId" AS "job_imageId", job.cmd AS job_cmd, job.params AS job_params, job.status AS job_status, job.retval AS job_retval, job.start_date AS job_start_date 
+FROM job 
+WHERE ? = job."projId"
+2021-08-19 20:30:37,202 [INFO] (1,)
+2021-08-19 20:30:37,203 [INFO] SELECT image.id AS image_id, image."projId" AS "image_projId", image.name AS image_name, image.path AS image_path, image.height AS image_height, image.width AS image_width, image.ppixel AS image_ppixel, image.npixel AS image_npixel, image.nobjects AS image_nobjects, image.date AS image_date, image.make_patches_time AS image_make_patches_time, image.superpixel_time AS image_superpixel_time, image.superpixel_modelid AS image_superpixel_modelid 
+FROM image 
+WHERE ? = image."projId"
+2021-08-19 20:30:37,203 [INFO] (1,)
+2021-08-19 20:30:37,203 [INFO] ROLLBACK
+2021-08-19 20:30:37,204 [INFO] 10.0.0.181 - - [19/Aug/2021 20:30:37] "GET /api/db/project?q=%7B%22filters%22%3A%5B%7B%22name%22%3A%22id%22%2C%22op%22%3A%22%3D%3D%22%2C%22val%22%3A%221%22%7D%5D%7D HTTP/1.1" 200 -
+2021-08-19 20:30:37,209 [INFO] BEGIN (implicit)
+2021-08-19 20:30:37,210 [INFO] SELECT count(*) AS count_1 
+FROM job 
+WHERE job."projId" = ? AND job."imageId" IS NULL AND job.cmd = ? AND job.status IN (?, ?)
+ LIMIT ? OFFSET ?
+2021-08-19 20:30:37,210 [INFO] ('1', 'make_patches', 'RUNNING', 'QUEUE', 1, 0)
+2021-08-19 20:30:37,213 [INFO] SELECT count(*) AS count_1 
+FROM (SELECT job.id AS job_id, job."projId" AS "job_projId", job."imageId" AS "job_imageId", job.cmd AS job_cmd, job.params AS job_params, job.status AS job_status, job.retval AS job_retval, job.start_date AS job_start_date 
+FROM job 
+WHERE job."projId" = ? AND job."imageId" IS NULL AND job.cmd = ? AND job.status IN (?, ?) ORDER BY job.id ASC
+ LIMIT ? OFFSET ?) AS anon_1
+2021-08-19 20:30:37,213 [INFO] ('1', 'make_patches', 'RUNNING', 'QUEUE', 1, 0)
+2021-08-19 20:30:37,214 [INFO] ROLLBACK
+2021-08-19 20:30:37,214 [INFO] 10.0.0.181 - - [19/Aug/2021 20:30:37] "GET /api/db/job?q=%7B%22filters%22%3A%5B%7B%22name%22%3A%22projId%22%2C%22op%22%3A%22%3D%3D%22%2C%22val%22%3A%221%22%7D%2C%7B%22name%22%3A%22imageId%22%2C%22op%22%3A%22is_null%22%7D%2C%7B%22name%22%3A%22cmd%22%2C%22op%22%3A%22%3D%3D%22%2C%22val%22%3A%22make_patches%22%7D%2C%7B%22name%22%3A%22status%22%2C%22op%22%3A%22in%22%2C%22val%22%3A%5B%22RUNNING%22%2C%22QUEUE%22%5D%7D%5D%2C%22limit%22%3A1%7D HTTP/1.1" 200 -
+2021-08-19 20:30:37,219 [INFO] BEGIN (implicit)
+2021-08-19 20:30:37,220 [INFO] SELECT count(*) AS count_1 
+FROM job 
+WHERE job."projId" = ? AND job."imageId" IS NULL AND job.cmd = ? AND job.status IN (?, ?)
+ LIMIT ? OFFSET ?
+2021-08-19 20:30:37,220 [INFO] ('1', 'train_autoencoder', 'RUNNING', 'QUEUE', 1, 0)
+2021-08-19 20:30:37,222 [INFO] SELECT count(*) AS count_1 
+FROM (SELECT job.id AS job_id, job."projId" AS "job_projId", job."imageId" AS "job_imageId", job.cmd AS job_cmd, job.params AS job_params, job.status AS job_status, job.retval AS job_retval, job.start_date AS job_start_date 
+FROM job 
+WHERE job."projId" = ? AND job."imageId" IS NULL AND job.cmd = ? AND job.status IN (?, ?) ORDER BY job.id ASC
+ LIMIT ? OFFSET ?) AS anon_1
+2021-08-19 20:30:37,222 [INFO] ('1', 'train_autoencoder', 'RUNNING', 'QUEUE', 1, 0)
+2021-08-19 20:30:37,223 [INFO] ROLLBACK
+2021-08-19 20:30:37,223 [INFO] 10.0.0.181 - - [19/Aug/2021 20:30:37] "GET /api/db/job?q=%7B%22filters%22%3A%5B%7B%22name%22%3A%22projId%22%2C%22op%22%3A%22%3D%3D%22%2C%22val%22%3A%221%22%7D%2C%7B%22name%22%3A%22imageId%22%2C%22op%22%3A%22is_null%22%7D%2C%7B%22name%22%3A%22cmd%22%2C%22op%22%3A%22%3D%3D%22%2C%22val%22%3A%22train_autoencoder%22%7D%2C%7B%22name%22%3A%22status%22%2C%22op%22%3A%22in%22%2C%22val%22%3A%5B%22RUNNING%22%2C%22QUEUE%22%5D%7D%5D%2C%22limit%22%3A1%7D HTTP/1.1" 200 -
+2021-08-19 20:30:37,228 [INFO] BEGIN (implicit)
+2021-08-19 20:30:37,229 [INFO] SELECT count(*) AS count_1 
+FROM job 
+WHERE job."projId" = ? AND job."imageId" IS NULL AND job.cmd = ? AND job.status IN (?, ?)
+ LIMIT ? OFFSET ?
+2021-08-19 20:30:37,229 [INFO] ('1', 'make_embed', 'RUNNING', 'QUEUE', 1, 0)
+2021-08-19 20:30:37,231 [INFO] SELECT count(*) AS count_1 
+FROM (SELECT job.id AS job_id, job."projId" AS "job_projId", job."imageId" AS "job_imageId", job.cmd AS job_cmd, job.params AS job_params, job.status AS job_status, job.retval AS job_retval, job.start_date AS job_start_date 
+FROM job 
+WHERE job."projId" = ? AND job."imageId" IS NULL AND job.cmd = ? AND job.status IN (?, ?) ORDER BY job.id ASC
+ LIMIT ? OFFSET ?) AS anon_1
+2021-08-19 20:30:37,231 [INFO] ('1', 'make_embed', 'RUNNING', 'QUEUE', 1, 0)
+2021-08-19 20:30:37,232 [INFO] ROLLBACK
+2021-08-19 20:30:37,232 [INFO] 10.0.0.181 - - [19/Aug/2021 20:30:37] "GET /api/db/job?q=%7B%22filters%22%3A%5B%7B%22name%22%3A%22projId%22%2C%22op%22%3A%22%3D%3D%22%2C%22val%22%3A%221%22%7D%2C%7B%22name%22%3A%22imageId%22%2C%22op%22%3A%22is_null%22%7D%2C%7B%22name%22%3A%22cmd%22%2C%22op%22%3A%22%3D%3D%22%2C%22val%22%3A%22make_embed%22%7D%2C%7B%22name%22%3A%22status%22%2C%22op%22%3A%22in%22%2C%22val%22%3A%5B%22RUNNING%22%2C%22QUEUE%22%5D%7D%5D%2C%22limit%22%3A1%7D HTTP/1.1" 200 -
+2021-08-19 20:30:46,662 [INFO] BEGIN (implicit)
+2021-08-19 20:30:46,662 [INFO] SELECT project.id AS project_id, project.name AS project_name, project.description AS project_description, project.date AS project_date, project.train_ae_time AS project_train_ae_time, project.make_patches_time AS project_make_patches_time, project.iteration AS project_iteration, project.embed_iteration AS project_embed_iteration 
+FROM project 
+WHERE project.name = ?
+ LIMIT ? OFFSET ?
+2021-08-19 20:30:46,663 [INFO] ('adf', 1, 0)
+2021-08-19 20:30:46,666 [INFO] SELECT image.id AS image_id, image."projId" AS "image_projId", image.name AS image_name, image.path AS image_path, image.height AS image_height, image.width AS image_width, image.date AS image_date, image.id = roi."imageId" AS rois, image.make_patches_time AS image_make_patches_time, image.npixel AS image_npixel, image.ppixel AS image_ppixel, image.nobjects AS image_nobjects, count(roi.id) AS "ROIs", count(roi.id) - ifnull(sum(roi."testingROI"), ?) AS "trainingROIs" 
+FROM image LEFT OUTER JOIN roi ON roi."imageId" = image.id 
+WHERE image."projId" = ? GROUP BY image.id
+2021-08-19 20:30:46,666 [INFO] (0, 1)
+2021-08-19 20:30:46,668 [INFO] ROLLBACK
+2021-08-19 20:30:46,668 [INFO] 10.0.0.181 - - [19/Aug/2021 20:30:46] "GET /adf/images HTTP/1.1" 200 -
+2021-08-19 20:30:46,698 [INFO] 10.0.0.181 - - [19/Aug/2021 20:30:46] "[36mGET /static/css/bootstrap.min.css HTTP/1.1[0m" 304 -
+2021-08-19 20:30:46,711 [INFO] 10.0.0.181 - - [19/Aug/2021 20:30:46] "[36mGET /static/css/imageselection.css HTTP/1.1[0m" 304 -
+2021-08-19 20:30:46,711 [INFO] 10.0.0.181 - - [19/Aug/2021 20:30:46] "[36mGET /static/css/dropzone.css HTTP/1.1[0m" 304 -
+2021-08-19 20:30:46,712 [INFO] 10.0.0.181 - - [19/Aug/2021 20:30:46] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2021-08-19 20:30:46,712 [INFO] 10.0.0.181 - - [19/Aug/2021 20:30:46] "[36mGET /static/css/logs.css HTTP/1.1[0m" 304 -
+2021-08-19 20:30:46,710 [INFO] BEGIN (implicit)
+2021-08-19 20:30:46,713 [INFO] 10.0.0.181 - - [19/Aug/2021 20:30:46] "[36mGET /static/css/basic.css HTTP/1.1[0m" 304 -
+2021-08-19 20:30:46,715 [INFO] SELECT project.id AS project_id, project.name AS project_name, project.description AS project_description, project.date AS project_date, project.train_ae_time AS project_train_ae_time, project.make_patches_time AS project_make_patches_time, project.iteration AS project_iteration, project.embed_iteration AS project_embed_iteration 
+FROM project 
+WHERE project.name = ?
+ LIMIT ? OFFSET ?
+2021-08-19 20:30:46,716 [INFO] ('adf', 1, 0)
+2021-08-19 20:30:46,719 [INFO] 10.0.0.181 - - [19/Aug/2021 20:30:46] "[36mGET /static/css/modal.css HTTP/1.1[0m" 304 -
+2021-08-19 20:30:46,720 [INFO] ROLLBACK
+2021-08-19 20:30:46,722 [INFO] 10.0.0.181 - - [19/Aug/2021 20:30:46] "[36mGET /static/js/angular.min.js HTTP/1.1[0m" 304 -
+2021-08-19 20:30:46,723 [INFO] 10.0.0.181 - - [19/Aug/2021 20:30:46] "[36mGET /static/css/jquery-ui.css HTTP/1.1[0m" 304 -
+2021-08-19 20:30:46,724 [INFO] 10.0.0.181 - - [19/Aug/2021 20:30:46] "GET /adf/images/images-main HTTP/1.1" 200 -
+2021-08-19 20:30:46,725 [INFO] 10.0.0.181 - - [19/Aug/2021 20:30:46] "[36mGET /static/js/jquery-3.5.0.js HTTP/1.1[0m" 304 -
+2021-08-19 20:30:46,727 [INFO] 10.0.0.181 - - [19/Aug/2021 20:30:46] "[36mGET /static/js/bootstrap.min.js HTTP/1.1[0m" 304 -
+2021-08-19 20:30:46,731 [INFO] 10.0.0.181 - - [19/Aug/2021 20:30:46] "[36mGET /static/js/bootstrap-dialog.min.js HTTP/1.1[0m" 304 -
+2021-08-19 20:30:46,734 [INFO] 10.0.0.181 - - [19/Aug/2021 20:30:46] "[36mGET /static/js/projectPageScript.js HTTP/1.1[0m" 304 -
+2021-08-19 20:30:46,736 [INFO] 10.0.0.181 - - [19/Aug/2021 20:30:46] "[36mGET /static/js/dropzone.js HTTP/1.1[0m" 304 -
+2021-08-19 20:30:46,738 [INFO] 10.0.0.181 - - [19/Aug/2021 20:30:46] "[36mGET /static/js/qa-utils.js HTTP/1.1[0m" 304 -
+2021-08-19 20:30:46,739 [INFO] 10.0.0.181 - - [19/Aug/2021 20:30:46] "[36mGET /static/js/jquery-ui.js HTTP/1.1[0m" 304 -
+2021-08-19 20:30:46,989 [INFO] BEGIN (implicit)
+2021-08-19 20:30:46,989 [INFO] SELECT count(*) AS count_1 
+FROM image 
+WHERE image."projId" = ?
+2021-08-19 20:30:46,989 [INFO] ('1',)
+2021-08-19 20:30:46,990 [INFO] ROLLBACK
+2021-08-19 20:30:46,990 [INFO] 10.0.0.181 - - [19/Aug/2021 20:30:46] "GET /api/db/image?q=%7B%22filters%22%3A%5B%7B%22name%22%3A%22projId%22%2C%22op%22%3A%22%3D%3D%22%2C%22val%22%3A%221%22%7D%5D%7D HTTP/1.1" 200 -
+2021-08-19 20:30:46,996 [INFO] BEGIN (implicit)
+2021-08-19 20:30:46,996 [INFO] SELECT count(*) AS count_1 
+FROM project 
+WHERE project.id = ?
+2021-08-19 20:30:46,997 [INFO] ('1',)
+2021-08-19 20:30:46,997 [INFO] SELECT project.id AS project_id, project.name AS project_name, project.description AS project_description, project.date AS project_date, project.train_ae_time AS project_train_ae_time, project.make_patches_time AS project_make_patches_time, project.iteration AS project_iteration, project.embed_iteration AS project_embed_iteration 
+FROM project 
+WHERE project.id = ? ORDER BY project.id ASC
+ LIMIT ? OFFSET ?
+2021-08-19 20:30:46,998 [INFO] ('1', 1, 0)
+2021-08-19 20:30:46,998 [INFO] SELECT job.id AS job_id, job."projId" AS "job_projId", job."imageId" AS "job_imageId", job.cmd AS job_cmd, job.params AS job_params, job.status AS job_status, job.retval AS job_retval, job.start_date AS job_start_date 
+FROM job 
+WHERE ? = job."projId"
+2021-08-19 20:30:46,998 [INFO] (1,)
+2021-08-19 20:30:46,999 [INFO] SELECT image.id AS image_id, image."projId" AS "image_projId", image.name AS image_name, image.path AS image_path, image.height AS image_height, image.width AS image_width, image.ppixel AS image_ppixel, image.npixel AS image_npixel, image.nobjects AS image_nobjects, image.date AS image_date, image.make_patches_time AS image_make_patches_time, image.superpixel_time AS image_superpixel_time, image.superpixel_modelid AS image_superpixel_modelid 
+FROM image 
+WHERE ? = image."projId"
+2021-08-19 20:30:46,999 [INFO] (1,)
+2021-08-19 20:30:46,999 [INFO] ROLLBACK
+2021-08-19 20:30:47,000 [INFO] 10.0.0.181 - - [19/Aug/2021 20:30:47] "GET /api/db/project?q=%7B%22filters%22%3A%5B%7B%22name%22%3A%22id%22%2C%22op%22%3A%22%3D%3D%22%2C%22val%22%3A%221%22%7D%5D%7D HTTP/1.1" 200 -
+2021-08-19 20:30:47,005 [INFO] BEGIN (implicit)
+2021-08-19 20:30:47,005 [INFO] SELECT count(*) AS count_1 
+FROM project 
+WHERE project.id = ?
+2021-08-19 20:30:47,005 [INFO] ('1',)
+2021-08-19 20:30:47,006 [INFO] SELECT project.id AS project_id, project.name AS project_name, project.description AS project_description, project.date AS project_date, project.train_ae_time AS project_train_ae_time, project.make_patches_time AS project_make_patches_time, project.iteration AS project_iteration, project.embed_iteration AS project_embed_iteration 
+FROM project 
+WHERE project.id = ? ORDER BY project.id ASC
+ LIMIT ? OFFSET ?
+2021-08-19 20:30:47,006 [INFO] ('1', 1, 0)
+2021-08-19 20:30:47,007 [INFO] SELECT job.id AS job_id, job."projId" AS "job_projId", job."imageId" AS "job_imageId", job.cmd AS job_cmd, job.params AS job_params, job.status AS job_status, job.retval AS job_retval, job.start_date AS job_start_date 
+FROM job 
+WHERE ? = job."projId"
+2021-08-19 20:30:47,007 [INFO] (1,)
+2021-08-19 20:30:47,008 [INFO] SELECT image.id AS image_id, image."projId" AS "image_projId", image.name AS image_name, image.path AS image_path, image.height AS image_height, image.width AS image_width, image.ppixel AS image_ppixel, image.npixel AS image_npixel, image.nobjects AS image_nobjects, image.date AS image_date, image.make_patches_time AS image_make_patches_time, image.superpixel_time AS image_superpixel_time, image.superpixel_modelid AS image_superpixel_modelid 
+FROM image 
+WHERE ? = image."projId"
+2021-08-19 20:30:47,008 [INFO] (1,)
+2021-08-19 20:30:47,008 [INFO] ROLLBACK
+2021-08-19 20:30:47,009 [INFO] 10.0.0.181 - - [19/Aug/2021 20:30:47] "GET /api/db/project?q=%7B%22filters%22%3A%5B%7B%22name%22%3A%22id%22%2C%22op%22%3A%22%3D%3D%22%2C%22val%22%3A%221%22%7D%5D%7D HTTP/1.1" 200 -
+2021-08-19 20:30:47,014 [INFO] BEGIN (implicit)
+2021-08-19 20:30:47,014 [INFO] SELECT count(*) AS count_1 
+FROM project 
+WHERE project.id = ?
+2021-08-19 20:30:47,014 [INFO] ('1',)
+2021-08-19 20:30:47,015 [INFO] SELECT project.id AS project_id, project.name AS project_name, project.description AS project_description, project.date AS project_date, project.train_ae_time AS project_train_ae_time, project.make_patches_time AS project_make_patches_time, project.iteration AS project_iteration, project.embed_iteration AS project_embed_iteration 
+FROM project 
+WHERE project.id = ? ORDER BY project.id ASC
+ LIMIT ? OFFSET ?
+2021-08-19 20:30:47,015 [INFO] ('1', 1, 0)
+2021-08-19 20:30:47,016 [INFO] SELECT job.id AS job_id, job."projId" AS "job_projId", job."imageId" AS "job_imageId", job.cmd AS job_cmd, job.params AS job_params, job.status AS job_status, job.retval AS job_retval, job.start_date AS job_start_date 
+FROM job 
+WHERE ? = job."projId"
+2021-08-19 20:30:47,016 [INFO] (1,)
+2021-08-19 20:30:47,016 [INFO] SELECT image.id AS image_id, image."projId" AS "image_projId", image.name AS image_name, image.path AS image_path, image.height AS image_height, image.width AS image_width, image.ppixel AS image_ppixel, image.npixel AS image_npixel, image.nobjects AS image_nobjects, image.date AS image_date, image.make_patches_time AS image_make_patches_time, image.superpixel_time AS image_superpixel_time, image.superpixel_modelid AS image_superpixel_modelid 
+FROM image 
+WHERE ? = image."projId"
+2021-08-19 20:30:47,016 [INFO] (1,)
+2021-08-19 20:30:47,017 [INFO] ROLLBACK
+2021-08-19 20:30:47,017 [INFO] 10.0.0.181 - - [19/Aug/2021 20:30:47] "GET /api/db/project?q=%7B%22filters%22%3A%5B%7B%22name%22%3A%22id%22%2C%22op%22%3A%22%3D%3D%22%2C%22val%22%3A%221%22%7D%5D%7D HTTP/1.1" 200 -
+2021-08-19 20:30:47,022 [INFO] BEGIN (implicit)
+2021-08-19 20:30:47,023 [INFO] SELECT count(*) AS count_1 
+FROM project 
+WHERE project.id = ?
+2021-08-19 20:30:47,023 [INFO] ('1',)
+2021-08-19 20:30:47,024 [INFO] SELECT project.id AS project_id, project.name AS project_name, project.description AS project_description, project.date AS project_date, project.train_ae_time AS project_train_ae_time, project.make_patches_time AS project_make_patches_time, project.iteration AS project_iteration, project.embed_iteration AS project_embed_iteration 
+FROM project 
+WHERE project.id = ? ORDER BY project.id ASC
+ LIMIT ? OFFSET ?
+2021-08-19 20:30:47,024 [INFO] ('1', 1, 0)
+2021-08-19 20:30:47,024 [INFO] SELECT job.id AS job_id, job."projId" AS "job_projId", job."imageId" AS "job_imageId", job.cmd AS job_cmd, job.params AS job_params, job.status AS job_status, job.retval AS job_retval, job.start_date AS job_start_date 
+FROM job 
+WHERE ? = job."projId"
+2021-08-19 20:30:47,025 [INFO] (1,)
+2021-08-19 20:30:47,025 [INFO] SELECT image.id AS image_id, image."projId" AS "image_projId", image.name AS image_name, image.path AS image_path, image.height AS image_height, image.width AS image_width, image.ppixel AS image_ppixel, image.npixel AS image_npixel, image.nobjects AS image_nobjects, image.date AS image_date, image.make_patches_time AS image_make_patches_time, image.superpixel_time AS image_superpixel_time, image.superpixel_modelid AS image_superpixel_modelid 
+FROM image 
+WHERE ? = image."projId"
+2021-08-19 20:30:47,025 [INFO] (1,)
+2021-08-19 20:30:47,026 [INFO] ROLLBACK
+2021-08-19 20:30:47,026 [INFO] 10.0.0.181 - - [19/Aug/2021 20:30:47] "GET /api/db/project?q=%7B%22filters%22%3A%5B%7B%22name%22%3A%22id%22%2C%22op%22%3A%22%3D%3D%22%2C%22val%22%3A%221%22%7D%5D%7D HTTP/1.1" 200 -
+2021-08-19 20:30:47,032 [INFO] BEGIN (implicit)
+2021-08-19 20:30:47,032 [INFO] SELECT count(*) AS count_1 
+FROM job 
+WHERE job."projId" = ? AND job."imageId" IS NULL AND job.cmd = ? AND job.status IN (?, ?)
+ LIMIT ? OFFSET ?
+2021-08-19 20:30:47,032 [INFO] ('1', 'make_patches', 'RUNNING', 'QUEUE', 1, 0)
+2021-08-19 20:30:47,034 [INFO] SELECT count(*) AS count_1 
+FROM (SELECT job.id AS job_id, job."projId" AS "job_projId", job."imageId" AS "job_imageId", job.cmd AS job_cmd, job.params AS job_params, job.status AS job_status, job.retval AS job_retval, job.start_date AS job_start_date 
+FROM job 
+WHERE job."projId" = ? AND job."imageId" IS NULL AND job.cmd = ? AND job.status IN (?, ?) ORDER BY job.id ASC
+ LIMIT ? OFFSET ?) AS anon_1
+2021-08-19 20:30:47,035 [INFO] ('1', 'make_patches', 'RUNNING', 'QUEUE', 1, 0)
+2021-08-19 20:30:47,035 [INFO] ROLLBACK
+2021-08-19 20:30:47,036 [INFO] 10.0.0.181 - - [19/Aug/2021 20:30:47] "GET /api/db/job?q=%7B%22filters%22%3A%5B%7B%22name%22%3A%22projId%22%2C%22op%22%3A%22%3D%3D%22%2C%22val%22%3A%221%22%7D%2C%7B%22name%22%3A%22imageId%22%2C%22op%22%3A%22is_null%22%7D%2C%7B%22name%22%3A%22cmd%22%2C%22op%22%3A%22%3D%3D%22%2C%22val%22%3A%22make_patches%22%7D%2C%7B%22name%22%3A%22status%22%2C%22op%22%3A%22in%22%2C%22val%22%3A%5B%22RUNNING%22%2C%22QUEUE%22%5D%7D%5D%2C%22limit%22%3A1%7D HTTP/1.1" 200 -
+2021-08-19 20:30:47,041 [INFO] BEGIN (implicit)
+2021-08-19 20:30:47,041 [INFO] SELECT count(*) AS count_1 
+FROM job 
+WHERE job."projId" = ? AND job."imageId" IS NULL AND job.cmd = ? AND job.status IN (?, ?)
+ LIMIT ? OFFSET ?
+2021-08-19 20:30:47,041 [INFO] ('1', 'train_autoencoder', 'RUNNING', 'QUEUE', 1, 0)
+2021-08-19 20:30:47,043 [INFO] SELECT count(*) AS count_1 
+FROM (SELECT job.id AS job_id, job."projId" AS "job_projId", job."imageId" AS "job_imageId", job.cmd AS job_cmd, job.params AS job_params, job.status AS job_status, job.retval AS job_retval, job.start_date AS job_start_date 
+FROM job 
+WHERE job."projId" = ? AND job."imageId" IS NULL AND job.cmd = ? AND job.status IN (?, ?) ORDER BY job.id ASC
+ LIMIT ? OFFSET ?) AS anon_1
+2021-08-19 20:30:47,044 [INFO] ('1', 'train_autoencoder', 'RUNNING', 'QUEUE', 1, 0)
+2021-08-19 20:30:47,044 [INFO] ROLLBACK
+2021-08-19 20:30:47,045 [INFO] 10.0.0.181 - - [19/Aug/2021 20:30:47] "GET /api/db/job?q=%7B%22filters%22%3A%5B%7B%22name%22%3A%22projId%22%2C%22op%22%3A%22%3D%3D%22%2C%22val%22%3A%221%22%7D%2C%7B%22name%22%3A%22imageId%22%2C%22op%22%3A%22is_null%22%7D%2C%7B%22name%22%3A%22cmd%22%2C%22op%22%3A%22%3D%3D%22%2C%22val%22%3A%22train_autoencoder%22%7D%2C%7B%22name%22%3A%22status%22%2C%22op%22%3A%22in%22%2C%22val%22%3A%5B%22RUNNING%22%2C%22QUEUE%22%5D%7D%5D%2C%22limit%22%3A1%7D HTTP/1.1" 200 -
+2021-08-19 20:30:47,050 [INFO] BEGIN (implicit)
+2021-08-19 20:30:47,050 [INFO] SELECT count(*) AS count_1 
+FROM job 
+WHERE job."projId" = ? AND job."imageId" IS NULL AND job.cmd = ? AND job.status IN (?, ?)
+ LIMIT ? OFFSET ?
+2021-08-19 20:30:47,051 [INFO] ('1', 'make_embed', 'RUNNING', 'QUEUE', 1, 0)
+2021-08-19 20:30:47,053 [INFO] SELECT count(*) AS count_1 
+FROM (SELECT job.id AS job_id, job."projId" AS "job_projId", job."imageId" AS "job_imageId", job.cmd AS job_cmd, job.params AS job_params, job.status AS job_status, job.retval AS job_retval, job.start_date AS job_start_date 
+FROM job 
+WHERE job."projId" = ? AND job."imageId" IS NULL AND job.cmd = ? AND job.status IN (?, ?) ORDER BY job.id ASC
+ LIMIT ? OFFSET ?) AS anon_1
+2021-08-19 20:30:47,053 [INFO] ('1', 'make_embed', 'RUNNING', 'QUEUE', 1, 0)
+2021-08-19 20:30:47,054 [INFO] ROLLBACK
+2021-08-19 20:30:47,054 [INFO] 10.0.0.181 - - [19/Aug/2021 20:30:47] "GET /api/db/job?q=%7B%22filters%22%3A%5B%7B%22name%22%3A%22projId%22%2C%22op%22%3A%22%3D%3D%22%2C%22val%22%3A%221%22%7D%2C%7B%22name%22%3A%22imageId%22%2C%22op%22%3A%22is_null%22%7D%2C%7B%22name%22%3A%22cmd%22%2C%22op%22%3A%22%3D%3D%22%2C%22val%22%3A%22make_embed%22%7D%2C%7B%22name%22%3A%22status%22%2C%22op%22%3A%22in%22%2C%22val%22%3A%5B%22RUNNING%22%2C%22QUEUE%22%5D%7D%5D%2C%22limit%22%3A1%7D HTTP/1.1" 200 -
+2021-08-19 20:30:47,067 [INFO] 10.0.0.181 - - [19/Aug/2021 20:30:47] "GET /favicon.ico HTTP/1.1" 200 -
+2021-08-19 20:30:58,232 [INFO] 10.0.0.181 - - [19/Aug/2021 20:30:58] "GET /api/logs/QA HTTP/1.1" 200 -
+2021-08-19 20:30:58,859 [INFO] 10.0.0.181 - - [19/Aug/2021 20:30:58] "GET /api/logs/QA HTTP/1.1" 200 -
+2021-08-19 20:30:59,859 [INFO] 10.0.0.181 - - [19/Aug/2021 20:30:59] "GET /api/logs/QA HTTP/1.1" 200 -
+2021-08-19 20:31:00,859 [INFO] 10.0.0.181 - - [19/Aug/2021 20:31:00] "GET /api/logs/QA HTTP/1.1" 200 -
+2021-08-19 20:31:01,859 [INFO] 10.0.0.181 - - [19/Aug/2021 20:31:01] "GET /api/logs/QA HTTP/1.1" 200 -
+2021-08-19 20:31:02,859 [INFO] 10.0.0.181 - - [19/Aug/2021 20:31:02] "GET /api/logs/QA HTTP/1.1" 200 -
+2021-08-19 20:31:03,859 [INFO] 10.0.0.181 - - [19/Aug/2021 20:31:03] "GET /api/logs/QA HTTP/1.1" 200 -
+2021-08-19 20:31:04,859 [INFO] 10.0.0.181 - - [19/Aug/2021 20:31:04] "GET /api/logs/QA HTTP/1.1" 200 -
+2021-08-19 20:31:21,867 [INFO] BEGIN (implicit)
+2021-08-19 20:31:21,868 [INFO] SELECT project.id AS project_id, project.name AS project_name, project.description AS project_description, project.date AS project_date, project.train_ae_time AS project_train_ae_time, project.make_patches_time AS project_make_patches_time, project.iteration AS project_iteration, project.embed_iteration AS project_embed_iteration 
+FROM project 
+WHERE project.name = ?
+ LIMIT ? OFFSET ?
+2021-08-19 20:31:21,868 [INFO] ('adf', 1, 0)
+2021-08-19 20:31:21,871 [INFO] SELECT image.id AS image_id, image."projId" AS "image_projId", image.name AS image_name, image.path AS image_path, image.height AS image_height, image.width AS image_width, image.date AS image_date, image.id = roi."imageId" AS rois, image.make_patches_time AS image_make_patches_time, image.npixel AS image_npixel, image.ppixel AS image_ppixel, image.nobjects AS image_nobjects, count(roi.id) AS "ROIs", count(roi.id) - ifnull(sum(roi."testingROI"), ?) AS "trainingROIs" 
+FROM image LEFT OUTER JOIN roi ON roi."imageId" = image.id 
+WHERE image."projId" = ? GROUP BY image.id
+2021-08-19 20:31:21,872 [INFO] (0, 1)
+2021-08-19 20:31:21,873 [INFO] ROLLBACK
+2021-08-19 20:31:21,873 [INFO] 10.0.0.181 - - [19/Aug/2021 20:31:21] "GET /adf/images HTTP/1.1" 200 -
+2021-08-19 20:31:21,926 [INFO] 10.0.0.181 - - [19/Aug/2021 20:31:21] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2021-08-19 20:31:21,927 [INFO] 10.0.0.181 - - [19/Aug/2021 20:31:21] "[36mGET /static/css/bootstrap.min.css HTTP/1.1[0m" 304 -
+2021-08-19 20:31:21,928 [INFO] 10.0.0.181 - - [19/Aug/2021 20:31:21] "[36mGET /static/css/dropzone.css HTTP/1.1[0m" 304 -
+2021-08-19 20:31:21,929 [INFO] 10.0.0.181 - - [19/Aug/2021 20:31:21] "[36mGET /static/css/basic.css HTTP/1.1[0m" 304 -
+2021-08-19 20:31:21,932 [INFO] 10.0.0.181 - - [19/Aug/2021 20:31:21] "[36mGET /static/css/imageselection.css HTTP/1.1[0m" 304 -
+2021-08-19 20:31:21,934 [INFO] 10.0.0.181 - - [19/Aug/2021 20:31:21] "[36mGET /static/css/logs.css HTTP/1.1[0m" 304 -
+2021-08-19 20:31:21,936 [INFO] 10.0.0.181 - - [19/Aug/2021 20:31:21] "[36mGET /static/css/modal.css HTTP/1.1[0m" 304 -
+2021-08-19 20:31:21,938 [INFO] 10.0.0.181 - - [19/Aug/2021 20:31:21] "[36mGET /static/css/jquery-ui.css HTTP/1.1[0m" 304 -
+2021-08-19 20:31:21,940 [INFO] 10.0.0.181 - - [19/Aug/2021 20:31:21] "[36mGET /static/js/angular.min.js HTTP/1.1[0m" 304 -
+2021-08-19 20:31:21,941 [INFO] 10.0.0.181 - - [19/Aug/2021 20:31:21] "[36mGET /static/js/jquery-3.5.0.js HTTP/1.1[0m" 304 -
+2021-08-19 20:31:21,942 [INFO] BEGIN (implicit)
+2021-08-19 20:31:21,943 [INFO] SELECT project.id AS project_id, project.name AS project_name, project.description AS project_description, project.date AS project_date, project.train_ae_time AS project_train_ae_time, project.make_patches_time AS project_make_patches_time, project.iteration AS project_iteration, project.embed_iteration AS project_embed_iteration 
+FROM project 
+WHERE project.name = ?
+ LIMIT ? OFFSET ?
+2021-08-19 20:31:21,946 [INFO] 10.0.0.181 - - [19/Aug/2021 20:31:21] "[36mGET /static/js/bootstrap-dialog.min.js HTTP/1.1[0m" 304 -
+2021-08-19 20:31:21,946 [INFO] ('adf', 1, 0)
+2021-08-19 20:31:21,947 [INFO] 10.0.0.181 - - [19/Aug/2021 20:31:21] "[36mGET /static/js/bootstrap.min.js HTTP/1.1[0m" 304 -
+2021-08-19 20:31:21,949 [INFO] 10.0.0.181 - - [19/Aug/2021 20:31:21] "[36mGET /static/js/dropzone.js HTTP/1.1[0m" 304 -
+2021-08-19 20:31:21,950 [INFO] 10.0.0.181 - - [19/Aug/2021 20:31:21] "[36mGET /static/js/projectPageScript.js HTTP/1.1[0m" 304 -
+2021-08-19 20:31:21,951 [INFO] ROLLBACK
+2021-08-19 20:31:21,955 [INFO] 10.0.0.181 - - [19/Aug/2021 20:31:21] "[36mGET /static/js/qa-utils.js HTTP/1.1[0m" 304 -
+2021-08-19 20:31:21,955 [INFO] 10.0.0.181 - - [19/Aug/2021 20:31:21] "GET /adf/images/images-main HTTP/1.1" 200 -
+2021-08-19 20:31:21,956 [INFO] 10.0.0.181 - - [19/Aug/2021 20:31:21] "[36mGET /static/js/jquery-ui.js HTTP/1.1[0m" 304 -
+2021-08-19 20:31:22,194 [INFO] BEGIN (implicit)
+2021-08-19 20:31:22,195 [INFO] SELECT count(*) AS count_1 
+FROM image 
+WHERE image."projId" = ?
+2021-08-19 20:31:22,195 [INFO] ('1',)
+2021-08-19 20:31:22,196 [INFO] ROLLBACK
+2021-08-19 20:31:22,196 [INFO] 10.0.0.181 - - [19/Aug/2021 20:31:22] "GET /api/db/image?q=%7B%22filters%22%3A%5B%7B%22name%22%3A%22projId%22%2C%22op%22%3A%22%3D%3D%22%2C%22val%22%3A%221%22%7D%5D%7D HTTP/1.1" 200 -
+2021-08-19 20:31:22,201 [INFO] BEGIN (implicit)
+2021-08-19 20:31:22,202 [INFO] SELECT count(*) AS count_1 
+FROM project 
+WHERE project.id = ?
+2021-08-19 20:31:22,202 [INFO] ('1',)
+2021-08-19 20:31:22,203 [INFO] SELECT project.id AS project_id, project.name AS project_name, project.description AS project_description, project.date AS project_date, project.train_ae_time AS project_train_ae_time, project.make_patches_time AS project_make_patches_time, project.iteration AS project_iteration, project.embed_iteration AS project_embed_iteration 
+FROM project 
+WHERE project.id = ? ORDER BY project.id ASC
+ LIMIT ? OFFSET ?
+2021-08-19 20:31:22,203 [INFO] ('1', 1, 0)
+2021-08-19 20:31:22,203 [INFO] SELECT job.id AS job_id, job."projId" AS "job_projId", job."imageId" AS "job_imageId", job.cmd AS job_cmd, job.params AS job_params, job.status AS job_status, job.retval AS job_retval, job.start_date AS job_start_date 
+FROM job 
+WHERE ? = job."projId"
+2021-08-19 20:31:22,203 [INFO] (1,)
+2021-08-19 20:31:22,204 [INFO] SELECT image.id AS image_id, image."projId" AS "image_projId", image.name AS image_name, image.path AS image_path, image.height AS image_height, image.width AS image_width, image.ppixel AS image_ppixel, image.npixel AS image_npixel, image.nobjects AS image_nobjects, image.date AS image_date, image.make_patches_time AS image_make_patches_time, image.superpixel_time AS image_superpixel_time, image.superpixel_modelid AS image_superpixel_modelid 
+FROM image 
+WHERE ? = image."projId"
+2021-08-19 20:31:22,204 [INFO] (1,)
+2021-08-19 20:31:22,205 [INFO] ROLLBACK
+2021-08-19 20:31:22,205 [INFO] 10.0.0.181 - - [19/Aug/2021 20:31:22] "GET /api/db/project?q=%7B%22filters%22%3A%5B%7B%22name%22%3A%22id%22%2C%22op%22%3A%22%3D%3D%22%2C%22val%22%3A%221%22%7D%5D%7D HTTP/1.1" 200 -
+2021-08-19 20:31:22,210 [INFO] BEGIN (implicit)
+2021-08-19 20:31:22,210 [INFO] SELECT count(*) AS count_1 
+FROM project 
+WHERE project.id = ?
+2021-08-19 20:31:22,211 [INFO] ('1',)
+2021-08-19 20:31:22,211 [INFO] SELECT project.id AS project_id, project.name AS project_name, project.description AS project_description, project.date AS project_date, project.train_ae_time AS project_train_ae_time, project.make_patches_time AS project_make_patches_time, project.iteration AS project_iteration, project.embed_iteration AS project_embed_iteration 
+FROM project 
+WHERE project.id = ? ORDER BY project.id ASC
+ LIMIT ? OFFSET ?
+2021-08-19 20:31:22,211 [INFO] ('1', 1, 0)
+2021-08-19 20:31:22,212 [INFO] SELECT job.id AS job_id, job."projId" AS "job_projId", job."imageId" AS "job_imageId", job.cmd AS job_cmd, job.params AS job_params, job.status AS job_status, job.retval AS job_retval, job.start_date AS job_start_date 
+FROM job 
+WHERE ? = job."projId"
+2021-08-19 20:31:22,212 [INFO] (1,)
+2021-08-19 20:31:22,213 [INFO] SELECT image.id AS image_id, image."projId" AS "image_projId", image.name AS image_name, image.path AS image_path, image.height AS image_height, image.width AS image_width, image.ppixel AS image_ppixel, image.npixel AS image_npixel, image.nobjects AS image_nobjects, image.date AS image_date, image.make_patches_time AS image_make_patches_time, image.superpixel_time AS image_superpixel_time, image.superpixel_modelid AS image_superpixel_modelid 
+FROM image 
+WHERE ? = image."projId"
+2021-08-19 20:31:22,213 [INFO] (1,)
+2021-08-19 20:31:22,214 [INFO] ROLLBACK
+2021-08-19 20:31:22,214 [INFO] 10.0.0.181 - - [19/Aug/2021 20:31:22] "GET /api/db/project?q=%7B%22filters%22%3A%5B%7B%22name%22%3A%22id%22%2C%22op%22%3A%22%3D%3D%22%2C%22val%22%3A%221%22%7D%5D%7D HTTP/1.1" 200 -
+2021-08-19 20:31:22,218 [INFO] BEGIN (implicit)
+2021-08-19 20:31:22,218 [INFO] SELECT count(*) AS count_1 
+FROM project 
+WHERE project.id = ?
+2021-08-19 20:31:22,219 [INFO] ('1',)
+2021-08-19 20:31:22,219 [INFO] SELECT project.id AS project_id, project.name AS project_name, project.description AS project_description, project.date AS project_date, project.train_ae_time AS project_train_ae_time, project.make_patches_time AS project_make_patches_time, project.iteration AS project_iteration, project.embed_iteration AS project_embed_iteration 
+FROM project 
+WHERE project.id = ? ORDER BY project.id ASC
+ LIMIT ? OFFSET ?
+2021-08-19 20:31:22,219 [INFO] ('1', 1, 0)
+2021-08-19 20:31:22,220 [INFO] SELECT job.id AS job_id, job."projId" AS "job_projId", job."imageId" AS "job_imageId", job.cmd AS job_cmd, job.params AS job_params, job.status AS job_status, job.retval AS job_retval, job.start_date AS job_start_date 
+FROM job 
+WHERE ? = job."projId"
+2021-08-19 20:31:22,220 [INFO] (1,)
+2021-08-19 20:31:22,221 [INFO] SELECT image.id AS image_id, image."projId" AS "image_projId", image.name AS image_name, image.path AS image_path, image.height AS image_height, image.width AS image_width, image.ppixel AS image_ppixel, image.npixel AS image_npixel, image.nobjects AS image_nobjects, image.date AS image_date, image.make_patches_time AS image_make_patches_time, image.superpixel_time AS image_superpixel_time, image.superpixel_modelid AS image_superpixel_modelid 
+FROM image 
+WHERE ? = image."projId"
+2021-08-19 20:31:22,221 [INFO] (1,)
+2021-08-19 20:31:22,221 [INFO] ROLLBACK
+2021-08-19 20:31:22,222 [INFO] 10.0.0.181 - - [19/Aug/2021 20:31:22] "GET /api/db/project?q=%7B%22filters%22%3A%5B%7B%22name%22%3A%22id%22%2C%22op%22%3A%22%3D%3D%22%2C%22val%22%3A%221%22%7D%5D%7D HTTP/1.1" 200 -
+2021-08-19 20:31:22,227 [INFO] BEGIN (implicit)
+2021-08-19 20:31:22,227 [INFO] SELECT count(*) AS count_1 
+FROM project 
+WHERE project.id = ?
+2021-08-19 20:31:22,227 [INFO] ('1',)
+2021-08-19 20:31:22,228 [INFO] SELECT project.id AS project_id, project.name AS project_name, project.description AS project_description, project.date AS project_date, project.train_ae_time AS project_train_ae_time, project.make_patches_time AS project_make_patches_time, project.iteration AS project_iteration, project.embed_iteration AS project_embed_iteration 
+FROM project 
+WHERE project.id = ? ORDER BY project.id ASC
+ LIMIT ? OFFSET ?
+2021-08-19 20:31:22,228 [INFO] ('1', 1, 0)
+2021-08-19 20:31:22,229 [INFO] SELECT job.id AS job_id, job."projId" AS "job_projId", job."imageId" AS "job_imageId", job.cmd AS job_cmd, job.params AS job_params, job.status AS job_status, job.retval AS job_retval, job.start_date AS job_start_date 
+FROM job 
+WHERE ? = job."projId"
+2021-08-19 20:31:22,229 [INFO] (1,)
+2021-08-19 20:31:22,229 [INFO] SELECT image.id AS image_id, image."projId" AS "image_projId", image.name AS image_name, image.path AS image_path, image.height AS image_height, image.width AS image_width, image.ppixel AS image_ppixel, image.npixel AS image_npixel, image.nobjects AS image_nobjects, image.date AS image_date, image.make_patches_time AS image_make_patches_time, image.superpixel_time AS image_superpixel_time, image.superpixel_modelid AS image_superpixel_modelid 
+FROM image 
+WHERE ? = image."projId"
+2021-08-19 20:31:22,230 [INFO] (1,)
+2021-08-19 20:31:22,230 [INFO] ROLLBACK
+2021-08-19 20:31:22,231 [INFO] 10.0.0.181 - - [19/Aug/2021 20:31:22] "GET /api/db/project?q=%7B%22filters%22%3A%5B%7B%22name%22%3A%22id%22%2C%22op%22%3A%22%3D%3D%22%2C%22val%22%3A%221%22%7D%5D%7D HTTP/1.1" 200 -
+2021-08-19 20:31:22,236 [INFO] BEGIN (implicit)
+2021-08-19 20:31:22,237 [INFO] SELECT count(*) AS count_1 
+FROM job 
+WHERE job."projId" = ? AND job."imageId" IS NULL AND job.cmd = ? AND job.status IN (?, ?)
+ LIMIT ? OFFSET ?
+2021-08-19 20:31:22,237 [INFO] ('1', 'make_patches', 'RUNNING', 'QUEUE', 1, 0)
+2021-08-19 20:31:22,239 [INFO] SELECT count(*) AS count_1 
+FROM (SELECT job.id AS job_id, job."projId" AS "job_projId", job."imageId" AS "job_imageId", job.cmd AS job_cmd, job.params AS job_params, job.status AS job_status, job.retval AS job_retval, job.start_date AS job_start_date 
+FROM job 
+WHERE job."projId" = ? AND job."imageId" IS NULL AND job.cmd = ? AND job.status IN (?, ?) ORDER BY job.id ASC
+ LIMIT ? OFFSET ?) AS anon_1
+2021-08-19 20:31:22,239 [INFO] ('1', 'make_patches', 'RUNNING', 'QUEUE', 1, 0)
+2021-08-19 20:31:22,240 [INFO] ROLLBACK
+2021-08-19 20:31:22,240 [INFO] 10.0.0.181 - - [19/Aug/2021 20:31:22] "GET /api/db/job?q=%7B%22filters%22%3A%5B%7B%22name%22%3A%22projId%22%2C%22op%22%3A%22%3D%3D%22%2C%22val%22%3A%221%22%7D%2C%7B%22name%22%3A%22imageId%22%2C%22op%22%3A%22is_null%22%7D%2C%7B%22name%22%3A%22cmd%22%2C%22op%22%3A%22%3D%3D%22%2C%22val%22%3A%22make_patches%22%7D%2C%7B%22name%22%3A%22status%22%2C%22op%22%3A%22in%22%2C%22val%22%3A%5B%22RUNNING%22%2C%22QUEUE%22%5D%7D%5D%2C%22limit%22%3A1%7D HTTP/1.1" 200 -
+2021-08-19 20:31:22,245 [INFO] BEGIN (implicit)
+2021-08-19 20:31:22,246 [INFO] SELECT count(*) AS count_1 
+FROM job 
+WHERE job."projId" = ? AND job."imageId" IS NULL AND job.cmd = ? AND job.status IN (?, ?)
+ LIMIT ? OFFSET ?
+2021-08-19 20:31:22,246 [INFO] ('1', 'train_autoencoder', 'RUNNING', 'QUEUE', 1, 0)
+2021-08-19 20:31:22,248 [INFO] SELECT count(*) AS count_1 
+FROM (SELECT job.id AS job_id, job."projId" AS "job_projId", job."imageId" AS "job_imageId", job.cmd AS job_cmd, job.params AS job_params, job.status AS job_status, job.retval AS job_retval, job.start_date AS job_start_date 
+FROM job 
+WHERE job."projId" = ? AND job."imageId" IS NULL AND job.cmd = ? AND job.status IN (?, ?) ORDER BY job.id ASC
+ LIMIT ? OFFSET ?) AS anon_1
+2021-08-19 20:31:22,248 [INFO] ('1', 'train_autoencoder', 'RUNNING', 'QUEUE', 1, 0)
+2021-08-19 20:31:22,249 [INFO] ROLLBACK
+2021-08-19 20:31:22,249 [INFO] 10.0.0.181 - - [19/Aug/2021 20:31:22] "GET /api/db/job?q=%7B%22filters%22%3A%5B%7B%22name%22%3A%22projId%22%2C%22op%22%3A%22%3D%3D%22%2C%22val%22%3A%221%22%7D%2C%7B%22name%22%3A%22imageId%22%2C%22op%22%3A%22is_null%22%7D%2C%7B%22name%22%3A%22cmd%22%2C%22op%22%3A%22%3D%3D%22%2C%22val%22%3A%22train_autoencoder%22%7D%2C%7B%22name%22%3A%22status%22%2C%22op%22%3A%22in%22%2C%22val%22%3A%5B%22RUNNING%22%2C%22QUEUE%22%5D%7D%5D%2C%22limit%22%3A1%7D HTTP/1.1" 200 -
+2021-08-19 20:31:22,253 [INFO] BEGIN (implicit)
+2021-08-19 20:31:22,254 [INFO] SELECT count(*) AS count_1 
+FROM job 
+WHERE job."projId" = ? AND job."imageId" IS NULL AND job.cmd = ? AND job.status IN (?, ?)
+ LIMIT ? OFFSET ?
+2021-08-19 20:31:22,254 [INFO] ('1', 'make_embed', 'RUNNING', 'QUEUE', 1, 0)
+2021-08-19 20:31:22,256 [INFO] SELECT count(*) AS count_1 
+FROM (SELECT job.id AS job_id, job."projId" AS "job_projId", job."imageId" AS "job_imageId", job.cmd AS job_cmd, job.params AS job_params, job.status AS job_status, job.retval AS job_retval, job.start_date AS job_start_date 
+FROM job 
+WHERE job."projId" = ? AND job."imageId" IS NULL AND job.cmd = ? AND job.status IN (?, ?) ORDER BY job.id ASC
+ LIMIT ? OFFSET ?) AS anon_1
+2021-08-19 20:31:22,257 [INFO] ('1', 'make_embed', 'RUNNING', 'QUEUE', 1, 0)
+2021-08-19 20:31:22,257 [INFO] ROLLBACK
+2021-08-19 20:31:22,258 [INFO] 10.0.0.181 - - [19/Aug/2021 20:31:22] "GET /api/db/job?q=%7B%22filters%22%3A%5B%7B%22name%22%3A%22projId%22%2C%22op%22%3A%22%3D%3D%22%2C%22val%22%3A%221%22%7D%2C%7B%22name%22%3A%22imageId%22%2C%22op%22%3A%22is_null%22%7D%2C%7B%22name%22%3A%22cmd%22%2C%22op%22%3A%22%3D%3D%22%2C%22val%22%3A%22make_embed%22%7D%2C%7B%22name%22%3A%22status%22%2C%22op%22%3A%22in%22%2C%22val%22%3A%5B%22RUNNING%22%2C%22QUEUE%22%5D%7D%5D%2C%22limit%22%3A1%7D HTTP/1.1" 200 -
+2021-08-19 20:31:22,276 [INFO] 10.0.0.181 - - [19/Aug/2021 20:31:22] "GET /favicon.ico HTTP/1.1" 200 -
+2021-08-19 20:32:23,927 [INFO] BEGIN (implicit)
+2021-08-19 20:32:23,927 [INFO] SELECT project.id AS project_id, project.name AS project_name, project.description AS project_description, project.date AS project_date, project.train_ae_time AS project_train_ae_time, project.make_patches_time AS project_make_patches_time, project.iteration AS project_iteration, project.embed_iteration AS project_embed_iteration 
+FROM project 
+WHERE project.name = ?
+ LIMIT ? OFFSET ?
+2021-08-19 20:32:23,927 [INFO] ('adf', 1, 0)
+2021-08-19 20:32:23,929 [INFO] SELECT image.id AS image_id, image."projId" AS "image_projId", image.name AS image_name, image.path AS image_path, image.height AS image_height, image.width AS image_width, image.date AS image_date, image.id = roi."imageId" AS rois, image.make_patches_time AS image_make_patches_time, image.npixel AS image_npixel, image.ppixel AS image_ppixel, image.nobjects AS image_nobjects, count(roi.id) AS "ROIs", count(roi.id) - ifnull(sum(roi."testingROI"), ?) AS "trainingROIs" 
+FROM image LEFT OUTER JOIN roi ON roi."imageId" = image.id 
+WHERE image."projId" = ? GROUP BY image.id
+2021-08-19 20:32:23,929 [INFO] (0, 1)
+2021-08-19 20:32:23,931 [INFO] ROLLBACK
+2021-08-19 20:32:23,931 [INFO] 10.0.0.181 - - [19/Aug/2021 20:32:23] "GET /adf/images HTTP/1.1" 200 -
+2021-08-19 20:32:23,962 [INFO] 10.0.0.181 - - [19/Aug/2021 20:32:23] "[36mGET /static/css/bootstrap.min.css HTTP/1.1[0m" 304 -
+2021-08-19 20:32:23,973 [INFO] 10.0.0.181 - - [19/Aug/2021 20:32:23] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2021-08-19 20:32:23,972 [INFO] BEGIN (implicit)
+2021-08-19 20:32:23,974 [INFO] 10.0.0.181 - - [19/Aug/2021 20:32:23] "[36mGET /static/css/basic.css HTTP/1.1[0m" 304 -
+2021-08-19 20:32:23,975 [INFO] 10.0.0.181 - - [19/Aug/2021 20:32:23] "[36mGET /static/css/logs.css HTTP/1.1[0m" 304 -
+2021-08-19 20:32:23,976 [INFO] 10.0.0.181 - - [19/Aug/2021 20:32:23] "[36mGET /static/css/dropzone.css HTTP/1.1[0m" 304 -
+2021-08-19 20:32:23,976 [INFO] 10.0.0.181 - - [19/Aug/2021 20:32:23] "[36mGET /static/css/imageselection.css HTTP/1.1[0m" 304 -
+2021-08-19 20:32:23,977 [INFO] SELECT project.id AS project_id, project.name AS project_name, project.description AS project_description, project.date AS project_date, project.train_ae_time AS project_train_ae_time, project.make_patches_time AS project_make_patches_time, project.iteration AS project_iteration, project.embed_iteration AS project_embed_iteration 
+FROM project 
+WHERE project.name = ?
+ LIMIT ? OFFSET ?
+2021-08-19 20:32:23,979 [INFO] 10.0.0.181 - - [19/Aug/2021 20:32:23] "[36mGET /static/css/modal.css HTTP/1.1[0m" 304 -
+2021-08-19 20:32:23,981 [INFO] 10.0.0.181 - - [19/Aug/2021 20:32:23] "[36mGET /static/css/jquery-ui.css HTTP/1.1[0m" 304 -
+2021-08-19 20:32:23,981 [INFO] ('adf', 1, 0)
+2021-08-19 20:32:23,983 [INFO] 10.0.0.181 - - [19/Aug/2021 20:32:23] "[36mGET /static/js/angular.min.js HTTP/1.1[0m" 304 -
+2021-08-19 20:32:23,985 [INFO] 10.0.0.181 - - [19/Aug/2021 20:32:23] "[36mGET /static/js/jquery-3.5.0.js HTTP/1.1[0m" 304 -
+2021-08-19 20:32:23,987 [INFO] ROLLBACK
+2021-08-19 20:32:23,989 [INFO] 10.0.0.181 - - [19/Aug/2021 20:32:23] "[36mGET /static/js/bootstrap.min.js HTTP/1.1[0m" 304 -
+2021-08-19 20:32:23,990 [INFO] 10.0.0.181 - - [19/Aug/2021 20:32:23] "GET /adf/images/images-main HTTP/1.1" 200 -
+2021-08-19 20:32:23,992 [INFO] 10.0.0.181 - - [19/Aug/2021 20:32:23] "[36mGET /static/js/bootstrap-dialog.min.js HTTP/1.1[0m" 304 -
+2021-08-19 20:32:23,994 [INFO] 10.0.0.181 - - [19/Aug/2021 20:32:23] "[36mGET /static/js/projectPageScript.js HTTP/1.1[0m" 304 -
+2021-08-19 20:32:23,996 [INFO] 10.0.0.181 - - [19/Aug/2021 20:32:23] "[36mGET /static/js/dropzone.js HTTP/1.1[0m" 304 -
+2021-08-19 20:32:23,997 [INFO] 10.0.0.181 - - [19/Aug/2021 20:32:23] "[36mGET /static/js/qa-utils.js HTTP/1.1[0m" 304 -
+2021-08-19 20:32:23,997 [INFO] 10.0.0.181 - - [19/Aug/2021 20:32:23] "[36mGET /static/js/jquery-ui.js HTTP/1.1[0m" 304 -
+2021-08-19 20:32:24,229 [INFO] BEGIN (implicit)
+2021-08-19 20:32:24,229 [INFO] SELECT count(*) AS count_1 
+FROM image 
+WHERE image."projId" = ?
+2021-08-19 20:32:24,229 [INFO] ('1',)
+2021-08-19 20:32:24,230 [INFO] ROLLBACK
+2021-08-19 20:32:24,230 [INFO] 10.0.0.181 - - [19/Aug/2021 20:32:24] "GET /api/db/image?q=%7B%22filters%22%3A%5B%7B%22name%22%3A%22projId%22%2C%22op%22%3A%22%3D%3D%22%2C%22val%22%3A%221%22%7D%5D%7D HTTP/1.1" 200 -
+2021-08-19 20:32:24,235 [INFO] BEGIN (implicit)
+2021-08-19 20:32:24,235 [INFO] SELECT count(*) AS count_1 
+FROM project 
+WHERE project.id = ?
+2021-08-19 20:32:24,235 [INFO] ('1',)
+2021-08-19 20:32:24,236 [INFO] SELECT project.id AS project_id, project.name AS project_name, project.description AS project_description, project.date AS project_date, project.train_ae_time AS project_train_ae_time, project.make_patches_time AS project_make_patches_time, project.iteration AS project_iteration, project.embed_iteration AS project_embed_iteration 
+FROM project 
+WHERE project.id = ? ORDER BY project.id ASC
+ LIMIT ? OFFSET ?
+2021-08-19 20:32:24,236 [INFO] ('1', 1, 0)
+2021-08-19 20:32:24,237 [INFO] SELECT job.id AS job_id, job."projId" AS "job_projId", job."imageId" AS "job_imageId", job.cmd AS job_cmd, job.params AS job_params, job.status AS job_status, job.retval AS job_retval, job.start_date AS job_start_date 
+FROM job 
+WHERE ? = job."projId"
+2021-08-19 20:32:24,237 [INFO] (1,)
+2021-08-19 20:32:24,237 [INFO] SELECT image.id AS image_id, image."projId" AS "image_projId", image.name AS image_name, image.path AS image_path, image.height AS image_height, image.width AS image_width, image.ppixel AS image_ppixel, image.npixel AS image_npixel, image.nobjects AS image_nobjects, image.date AS image_date, image.make_patches_time AS image_make_patches_time, image.superpixel_time AS image_superpixel_time, image.superpixel_modelid AS image_superpixel_modelid 
+FROM image 
+WHERE ? = image."projId"
+2021-08-19 20:32:24,238 [INFO] (1,)
+2021-08-19 20:32:24,238 [INFO] ROLLBACK
+2021-08-19 20:32:24,239 [INFO] 10.0.0.181 - - [19/Aug/2021 20:32:24] "GET /api/db/project?q=%7B%22filters%22%3A%5B%7B%22name%22%3A%22id%22%2C%22op%22%3A%22%3D%3D%22%2C%22val%22%3A%221%22%7D%5D%7D HTTP/1.1" 200 -
+2021-08-19 20:32:24,244 [INFO] BEGIN (implicit)
+2021-08-19 20:32:24,244 [INFO] SELECT count(*) AS count_1 
+FROM project 
+WHERE project.id = ?
+2021-08-19 20:32:24,244 [INFO] ('1',)
+2021-08-19 20:32:24,245 [INFO] SELECT project.id AS project_id, project.name AS project_name, project.description AS project_description, project.date AS project_date, project.train_ae_time AS project_train_ae_time, project.make_patches_time AS project_make_patches_time, project.iteration AS project_iteration, project.embed_iteration AS project_embed_iteration 
+FROM project 
+WHERE project.id = ? ORDER BY project.id ASC
+ LIMIT ? OFFSET ?
+2021-08-19 20:32:24,245 [INFO] ('1', 1, 0)
+2021-08-19 20:32:24,246 [INFO] SELECT job.id AS job_id, job."projId" AS "job_projId", job."imageId" AS "job_imageId", job.cmd AS job_cmd, job.params AS job_params, job.status AS job_status, job.retval AS job_retval, job.start_date AS job_start_date 
+FROM job 
+WHERE ? = job."projId"
+2021-08-19 20:32:24,246 [INFO] (1,)
+2021-08-19 20:32:24,246 [INFO] SELECT image.id AS image_id, image."projId" AS "image_projId", image.name AS image_name, image.path AS image_path, image.height AS image_height, image.width AS image_width, image.ppixel AS image_ppixel, image.npixel AS image_npixel, image.nobjects AS image_nobjects, image.date AS image_date, image.make_patches_time AS image_make_patches_time, image.superpixel_time AS image_superpixel_time, image.superpixel_modelid AS image_superpixel_modelid 
+FROM image 
+WHERE ? = image."projId"
+2021-08-19 20:32:24,246 [INFO] (1,)
+2021-08-19 20:32:24,247 [INFO] ROLLBACK
+2021-08-19 20:32:24,247 [INFO] 10.0.0.181 - - [19/Aug/2021 20:32:24] "GET /api/db/project?q=%7B%22filters%22%3A%5B%7B%22name%22%3A%22id%22%2C%22op%22%3A%22%3D%3D%22%2C%22val%22%3A%221%22%7D%5D%7D HTTP/1.1" 200 -
+2021-08-19 20:32:24,252 [INFO] BEGIN (implicit)
+2021-08-19 20:32:24,252 [INFO] SELECT count(*) AS count_1 
+FROM project 
+WHERE project.id = ?
+2021-08-19 20:32:24,252 [INFO] ('1',)
+2021-08-19 20:32:24,253 [INFO] SELECT project.id AS project_id, project.name AS project_name, project.description AS project_description, project.date AS project_date, project.train_ae_time AS project_train_ae_time, project.make_patches_time AS project_make_patches_time, project.iteration AS project_iteration, project.embed_iteration AS project_embed_iteration 
+FROM project 
+WHERE project.id = ? ORDER BY project.id ASC
+ LIMIT ? OFFSET ?
+2021-08-19 20:32:24,253 [INFO] ('1', 1, 0)
+2021-08-19 20:32:24,254 [INFO] SELECT job.id AS job_id, job."projId" AS "job_projId", job."imageId" AS "job_imageId", job.cmd AS job_cmd, job.params AS job_params, job.status AS job_status, job.retval AS job_retval, job.start_date AS job_start_date 
+FROM job 
+WHERE ? = job."projId"
+2021-08-19 20:32:24,254 [INFO] (1,)
+2021-08-19 20:32:24,254 [INFO] SELECT image.id AS image_id, image."projId" AS "image_projId", image.name AS image_name, image.path AS image_path, image.height AS image_height, image.width AS image_width, image.ppixel AS image_ppixel, image.npixel AS image_npixel, image.nobjects AS image_nobjects, image.date AS image_date, image.make_patches_time AS image_make_patches_time, image.superpixel_time AS image_superpixel_time, image.superpixel_modelid AS image_superpixel_modelid 
+FROM image 
+WHERE ? = image."projId"
+2021-08-19 20:32:24,254 [INFO] (1,)
+2021-08-19 20:32:24,255 [INFO] ROLLBACK
+2021-08-19 20:32:24,255 [INFO] 10.0.0.181 - - [19/Aug/2021 20:32:24] "GET /api/db/project?q=%7B%22filters%22%3A%5B%7B%22name%22%3A%22id%22%2C%22op%22%3A%22%3D%3D%22%2C%22val%22%3A%221%22%7D%5D%7D HTTP/1.1" 200 -
+2021-08-19 20:32:24,260 [INFO] BEGIN (implicit)
+2021-08-19 20:32:24,260 [INFO] SELECT count(*) AS count_1 
+FROM project 
+WHERE project.id = ?
+2021-08-19 20:32:24,260 [INFO] ('1',)
+2021-08-19 20:32:24,261 [INFO] SELECT project.id AS project_id, project.name AS project_name, project.description AS project_description, project.date AS project_date, project.train_ae_time AS project_train_ae_time, project.make_patches_time AS project_make_patches_time, project.iteration AS project_iteration, project.embed_iteration AS project_embed_iteration 
+FROM project 
+WHERE project.id = ? ORDER BY project.id ASC
+ LIMIT ? OFFSET ?
+2021-08-19 20:32:24,261 [INFO] ('1', 1, 0)
+2021-08-19 20:32:24,262 [INFO] SELECT job.id AS job_id, job."projId" AS "job_projId", job."imageId" AS "job_imageId", job.cmd AS job_cmd, job.params AS job_params, job.status AS job_status, job.retval AS job_retval, job.start_date AS job_start_date 
+FROM job 
+WHERE ? = job."projId"
+2021-08-19 20:32:24,262 [INFO] (1,)
+2021-08-19 20:32:24,263 [INFO] SELECT image.id AS image_id, image."projId" AS "image_projId", image.name AS image_name, image.path AS image_path, image.height AS image_height, image.width AS image_width, image.ppixel AS image_ppixel, image.npixel AS image_npixel, image.nobjects AS image_nobjects, image.date AS image_date, image.make_patches_time AS image_make_patches_time, image.superpixel_time AS image_superpixel_time, image.superpixel_modelid AS image_superpixel_modelid 
+FROM image 
+WHERE ? = image."projId"
+2021-08-19 20:32:24,263 [INFO] (1,)
+2021-08-19 20:32:24,264 [INFO] ROLLBACK
+2021-08-19 20:32:24,264 [INFO] 10.0.0.181 - - [19/Aug/2021 20:32:24] "GET /api/db/project?q=%7B%22filters%22%3A%5B%7B%22name%22%3A%22id%22%2C%22op%22%3A%22%3D%3D%22%2C%22val%22%3A%221%22%7D%5D%7D HTTP/1.1" 200 -
+2021-08-19 20:32:24,270 [INFO] BEGIN (implicit)
+2021-08-19 20:32:24,270 [INFO] SELECT count(*) AS count_1 
+FROM job 
+WHERE job."projId" = ? AND job."imageId" IS NULL AND job.cmd = ? AND job.status IN (?, ?)
+ LIMIT ? OFFSET ?
+2021-08-19 20:32:24,271 [INFO] ('1', 'make_patches', 'RUNNING', 'QUEUE', 1, 0)
+2021-08-19 20:32:24,273 [INFO] SELECT count(*) AS count_1 
+FROM (SELECT job.id AS job_id, job."projId" AS "job_projId", job."imageId" AS "job_imageId", job.cmd AS job_cmd, job.params AS job_params, job.status AS job_status, job.retval AS job_retval, job.start_date AS job_start_date 
+FROM job 
+WHERE job."projId" = ? AND job."imageId" IS NULL AND job.cmd = ? AND job.status IN (?, ?) ORDER BY job.id ASC
+ LIMIT ? OFFSET ?) AS anon_1
+2021-08-19 20:32:24,273 [INFO] ('1', 'make_patches', 'RUNNING', 'QUEUE', 1, 0)
+2021-08-19 20:32:24,273 [INFO] ROLLBACK
+2021-08-19 20:32:24,274 [INFO] 10.0.0.181 - - [19/Aug/2021 20:32:24] "GET /api/db/job?q=%7B%22filters%22%3A%5B%7B%22name%22%3A%22projId%22%2C%22op%22%3A%22%3D%3D%22%2C%22val%22%3A%221%22%7D%2C%7B%22name%22%3A%22imageId%22%2C%22op%22%3A%22is_null%22%7D%2C%7B%22name%22%3A%22cmd%22%2C%22op%22%3A%22%3D%3D%22%2C%22val%22%3A%22make_patches%22%7D%2C%7B%22name%22%3A%22status%22%2C%22op%22%3A%22in%22%2C%22val%22%3A%5B%22RUNNING%22%2C%22QUEUE%22%5D%7D%5D%2C%22limit%22%3A1%7D HTTP/1.1" 200 -
+2021-08-19 20:32:24,278 [INFO] BEGIN (implicit)
+2021-08-19 20:32:24,279 [INFO] SELECT count(*) AS count_1 
+FROM job 
+WHERE job."projId" = ? AND job."imageId" IS NULL AND job.cmd = ? AND job.status IN (?, ?)
+ LIMIT ? OFFSET ?
+2021-08-19 20:32:24,279 [INFO] ('1', 'train_autoencoder', 'RUNNING', 'QUEUE', 1, 0)
+2021-08-19 20:32:24,281 [INFO] SELECT count(*) AS count_1 
+FROM (SELECT job.id AS job_id, job."projId" AS "job_projId", job."imageId" AS "job_imageId", job.cmd AS job_cmd, job.params AS job_params, job.status AS job_status, job.retval AS job_retval, job.start_date AS job_start_date 
+FROM job 
+WHERE job."projId" = ? AND job."imageId" IS NULL AND job.cmd = ? AND job.status IN (?, ?) ORDER BY job.id ASC
+ LIMIT ? OFFSET ?) AS anon_1
+2021-08-19 20:32:24,281 [INFO] ('1', 'train_autoencoder', 'RUNNING', 'QUEUE', 1, 0)
+2021-08-19 20:32:24,282 [INFO] ROLLBACK
+2021-08-19 20:32:24,282 [INFO] 10.0.0.181 - - [19/Aug/2021 20:32:24] "GET /api/db/job?q=%7B%22filters%22%3A%5B%7B%22name%22%3A%22projId%22%2C%22op%22%3A%22%3D%3D%22%2C%22val%22%3A%221%22%7D%2C%7B%22name%22%3A%22imageId%22%2C%22op%22%3A%22is_null%22%7D%2C%7B%22name%22%3A%22cmd%22%2C%22op%22%3A%22%3D%3D%22%2C%22val%22%3A%22train_autoencoder%22%7D%2C%7B%22name%22%3A%22status%22%2C%22op%22%3A%22in%22%2C%22val%22%3A%5B%22RUNNING%22%2C%22QUEUE%22%5D%7D%5D%2C%22limit%22%3A1%7D HTTP/1.1" 200 -
+2021-08-19 20:32:24,286 [INFO] BEGIN (implicit)
+2021-08-19 20:32:24,287 [INFO] SELECT count(*) AS count_1 
+FROM job 
+WHERE job."projId" = ? AND job."imageId" IS NULL AND job.cmd = ? AND job.status IN (?, ?)
+ LIMIT ? OFFSET ?
+2021-08-19 20:32:24,287 [INFO] ('1', 'make_embed', 'RUNNING', 'QUEUE', 1, 0)
+2021-08-19 20:32:24,289 [INFO] SELECT count(*) AS count_1 
+FROM (SELECT job.id AS job_id, job."projId" AS "job_projId", job."imageId" AS "job_imageId", job.cmd AS job_cmd, job.params AS job_params, job.status AS job_status, job.retval AS job_retval, job.start_date AS job_start_date 
+FROM job 
+WHERE job."projId" = ? AND job."imageId" IS NULL AND job.cmd = ? AND job.status IN (?, ?) ORDER BY job.id ASC
+ LIMIT ? OFFSET ?) AS anon_1
+2021-08-19 20:32:24,289 [INFO] ('1', 'make_embed', 'RUNNING', 'QUEUE', 1, 0)
+2021-08-19 20:32:24,290 [INFO] ROLLBACK
+2021-08-19 20:32:24,290 [INFO] 10.0.0.181 - - [19/Aug/2021 20:32:24] "GET /api/db/job?q=%7B%22filters%22%3A%5B%7B%22name%22%3A%22projId%22%2C%22op%22%3A%22%3D%3D%22%2C%22val%22%3A%221%22%7D%2C%7B%22name%22%3A%22imageId%22%2C%22op%22%3A%22is_null%22%7D%2C%7B%22name%22%3A%22cmd%22%2C%22op%22%3A%22%3D%3D%22%2C%22val%22%3A%22make_embed%22%7D%2C%7B%22name%22%3A%22status%22%2C%22op%22%3A%22in%22%2C%22val%22%3A%5B%22RUNNING%22%2C%22QUEUE%22%5D%7D%5D%2C%22limit%22%3A1%7D HTTP/1.1" 200 -
+2021-08-19 20:32:24,304 [INFO] 10.0.0.181 - - [19/Aug/2021 20:32:24] "GET /favicon.ico HTTP/1.1" 200 -
+2021-08-19 20:38:28,825 [INFO] Initializing database
+2021-08-19 20:38:28,832 [INFO] SELECT CAST('test plain returns' AS VARCHAR(60)) AS anon_1
+2021-08-19 20:38:28,832 [INFO] ()
+2021-08-19 20:38:28,833 [INFO] SELECT CAST('test unicode returns' AS VARCHAR(60)) AS anon_1
+2021-08-19 20:38:28,833 [INFO] ()
+2021-08-19 20:38:28,833 [INFO] PRAGMA main.table_info("project")
+2021-08-19 20:38:28,833 [INFO] ()
+2021-08-19 20:38:28,834 [INFO] PRAGMA main.table_info("image")
+2021-08-19 20:38:28,834 [INFO] ()
+2021-08-19 20:38:28,834 [INFO] PRAGMA main.table_info("roi")
+2021-08-19 20:38:28,834 [INFO] ()
+2021-08-19 20:38:28,834 [INFO] PRAGMA main.table_info("job")
+2021-08-19 20:38:28,834 [INFO] ()
+2021-08-19 20:38:28,834 [INFO] PRAGMA main.table_info("jobid_base")
+2021-08-19 20:38:28,835 [INFO] ()
+2021-08-19 20:38:28,835 [INFO] PRAGMA temp.table_info("jobid_base")
+2021-08-19 20:38:28,835 [INFO] ()
+2021-08-19 20:38:28,835 [INFO] 
+CREATE TABLE jobid_base (
+	id INTEGER NOT NULL, 
+	timestamp TEXT, 
+	procout TEXT, 
+	PRIMARY KEY (id)
+)
+
+
+2021-08-19 20:38:28,835 [INFO] ()
+2021-08-19 20:38:28,837 [INFO] COMMIT
+2021-08-19 20:38:28,837 [INFO] pragma journal_mode=wal;
+2021-08-19 20:38:28,837 [INFO] ()
+2021-08-19 20:38:28,838 [INFO] BEGIN (implicit)
+2021-08-19 20:38:28,838 [INFO] SELECT name FROM sqlite_master WHERE type='table' and name like 'jobid_%' ORDER BY name
+2021-08-19 20:38:28,838 [INFO] ()
+2021-08-19 20:38:28,838 [INFO] Dropping jobid_table jobid_base
+2021-08-19 20:38:28,839 [INFO] DROP TABLE IF EXISTS jobid_base
+2021-08-19 20:38:28,839 [INFO] ()
+2021-08-19 20:38:28,840 [INFO] COMMIT
+2021-08-19 20:38:28,840 [INFO] Clearing stale jobs
+2021-08-19 20:38:28,846 [INFO] BEGIN (implicit)
+2021-08-19 20:38:28,847 [INFO] DELETE FROM job WHERE job.status = ?
+2021-08-19 20:38:28,847 [INFO] ('QUEUE',)
+2021-08-19 20:38:28,847 [INFO] DELETE FROM job WHERE job.status = ?
+2021-08-19 20:38:28,847 [INFO] ('RUNNING',)
+2021-08-19 20:38:28,848 [INFO] COMMIT
+2021-08-19 20:38:28,848 [INFO] Deleted 0 queued jobs.
+2021-08-19 20:38:28,862 [INFO] Starting up worker pool.
+2021-08-19 20:40:14,360 [INFO] Initializing database
+2021-08-19 20:40:14,365 [INFO] SELECT CAST('test plain returns' AS VARCHAR(60)) AS anon_1
+2021-08-19 20:40:14,366 [INFO] ()
+2021-08-19 20:40:14,366 [INFO] SELECT CAST('test unicode returns' AS VARCHAR(60)) AS anon_1
+2021-08-19 20:40:14,366 [INFO] ()
+2021-08-19 20:40:14,366 [INFO] PRAGMA main.table_info("project")
+2021-08-19 20:40:14,366 [INFO] ()
+2021-08-19 20:40:14,367 [INFO] PRAGMA main.table_info("image")
+2021-08-19 20:40:14,367 [INFO] ()
+2021-08-19 20:40:14,367 [INFO] PRAGMA main.table_info("roi")
+2021-08-19 20:40:14,367 [INFO] ()
+2021-08-19 20:40:14,367 [INFO] PRAGMA main.table_info("job")
+2021-08-19 20:40:14,367 [INFO] ()
+2021-08-19 20:40:14,368 [INFO] PRAGMA main.table_info("jobid_base")
+2021-08-19 20:40:14,368 [INFO] ()
+2021-08-19 20:40:14,368 [INFO] PRAGMA temp.table_info("jobid_base")
+2021-08-19 20:40:14,368 [INFO] ()
+2021-08-19 20:40:14,368 [INFO] 
+CREATE TABLE jobid_base (
+	id INTEGER NOT NULL, 
+	timestamp TEXT, 
+	procout TEXT, 
+	PRIMARY KEY (id)
+)
+
+
+2021-08-19 20:40:14,369 [INFO] ()
+2021-08-19 20:40:14,373 [INFO] COMMIT
+2021-08-19 20:40:14,374 [INFO] pragma journal_mode=wal;
+2021-08-19 20:40:14,374 [INFO] ()
+2021-08-19 20:40:14,375 [INFO] BEGIN (implicit)
+2021-08-19 20:40:14,375 [INFO] SELECT name FROM sqlite_master WHERE type='table' and name like 'jobid_%' ORDER BY name
+2021-08-19 20:40:14,375 [INFO] ()
+2021-08-19 20:40:14,375 [INFO] Dropping jobid_table jobid_base
+2021-08-19 20:40:14,375 [INFO] DROP TABLE IF EXISTS jobid_base
+2021-08-19 20:40:14,375 [INFO] ()
+2021-08-19 20:40:14,377 [INFO] COMMIT
+2021-08-19 20:40:14,378 [INFO] Clearing stale jobs
+2021-08-19 20:40:14,385 [INFO] BEGIN (implicit)
+2021-08-19 20:40:14,385 [INFO] DELETE FROM job WHERE job.status = ?
+2021-08-19 20:40:14,385 [INFO] ('QUEUE',)
+2021-08-19 20:40:14,386 [INFO] DELETE FROM job WHERE job.status = ?
+2021-08-19 20:40:14,386 [INFO] ('RUNNING',)
+2021-08-19 20:40:14,386 [INFO] COMMIT
+2021-08-19 20:40:14,386 [INFO] Deleted 0 queued jobs.
+2021-08-19 20:40:14,400 [INFO] Starting up worker pool.
+2021-08-19 20:40:14,416 [WARNING]  * Running on all addresses.
+   WARNING: This is a development server. Do not use it in a production deployment.
+2021-08-19 20:40:14,416 [INFO]  * Running on http://10.0.0.181:5555/ (Press CTRL+C to quit)

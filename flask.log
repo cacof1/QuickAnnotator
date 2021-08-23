@@ -1,0 +1,42 @@
+2021-07-26 08:55:00,036 [INFO] Initializing database
+2021-07-26 08:56:01,488 [INFO] Initializing database
+2021-07-26 08:57:32,263 [INFO] Initializing database
+2021-07-26 08:57:32,297 [INFO] Dropping jobid_table jobid_base
+2021-07-26 08:57:32,300 [INFO] Clearing stale jobs
+2021-07-26 08:57:32,308 [INFO] Deleted 0 queued jobs.
+2021-07-26 08:57:32,322 [INFO] Starting up worker pool.
+2021-07-26 08:58:30,544 [INFO] Initializing database
+2021-07-26 08:58:30,558 [INFO] Dropping jobid_table jobid_base
+2021-07-26 08:58:30,559 [INFO] Clearing stale jobs
+2021-07-26 08:58:30,568 [INFO] Deleted 0 queued jobs.
+2021-07-26 08:58:30,584 [INFO] Starting up worker pool.
+2021-07-26 08:58:38,989 [INFO] Initializing database
+2021-07-26 08:58:39,005 [INFO] Dropping jobid_table jobid_base
+2021-07-26 08:58:39,009 [INFO] Clearing stale jobs
+2021-07-26 08:58:39,017 [INFO] Deleted 0 queued jobs.
+2021-07-26 08:58:39,030 [INFO] Starting up worker pool.
+2021-08-19 20:27:33,881 [INFO] Initializing database
+2021-08-19 20:27:33,904 [INFO] Dropping jobid_table jobid_base
+2021-08-19 20:27:33,906 [INFO] Clearing stale jobs
+2021-08-19 20:27:33,915 [INFO] Deleted 0 queued jobs.
+2021-08-19 20:27:33,930 [INFO] Starting up worker pool.
+2021-08-19 20:29:14,744 [INFO] Initializing database
+2021-08-19 20:29:14,760 [INFO] Dropping jobid_table jobid_base
+2021-08-19 20:29:14,763 [INFO] Clearing stale jobs
+2021-08-19 20:29:14,771 [INFO] Deleted 0 queued jobs.
+2021-08-19 20:29:14,786 [INFO] Starting up worker pool.
+2021-08-19 20:29:37,848 [INFO] Initializing database
+2021-08-19 20:29:37,897 [INFO] Dropping jobid_table jobid_base
+2021-08-19 20:29:37,902 [INFO] Clearing stale jobs
+2021-08-19 20:29:37,911 [INFO] Deleted 0 queued jobs.
+2021-08-19 20:29:37,925 [INFO] Starting up worker pool.
+2021-08-19 20:38:28,825 [INFO] Initializing database
+2021-08-19 20:38:28,838 [INFO] Dropping jobid_table jobid_base
+2021-08-19 20:38:28,840 [INFO] Clearing stale jobs
+2021-08-19 20:38:28,848 [INFO] Deleted 0 queued jobs.
+2021-08-19 20:38:28,862 [INFO] Starting up worker pool.
+2021-08-19 20:40:14,360 [INFO] Initializing database
+2021-08-19 20:40:14,375 [INFO] Dropping jobid_table jobid_base
+2021-08-19 20:40:14,378 [INFO] Clearing stale jobs
+2021-08-19 20:40:14,386 [INFO] Deleted 0 queued jobs.
+2021-08-19 20:40:14,400 [INFO] Starting up worker pool.
