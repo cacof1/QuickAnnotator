@@ -76,53 +76,53 @@ app.config['SQLALCHEMY_ECHO'] = config.getboolean('sqlalchemy', 'echo', fallback
 
 APP_ROOT = os.path.dirname(os.path.abspath('__file__'))
 
-if __name__ == '__main__': #This seems like the correct place to do this
+#if __name__ == '__main__': #This seems like the correct place to do this
 
-    # load logging config
-    logging.config.fileConfig('./config/logging.ini')
+# load logging config
+logging.config.fileConfig('./config/logging.ini')
+
+app.logger.info('Initializing database')
+
+db.app = app
+db.init_app(app)
+db.create_all()
+db.engine.connect().execute('pragma journal_mode=wal;')
+
+if config.getboolean('sqlalchemy', 'delete_old_jobs_at_start', fallback=True):
+    jobid_tables = db.session.execute("SELECT name FROM sqlite_master WHERE type='table' and name like 'jobid_%' ORDER BY name").fetchall()
+    for jobid_table in jobid_tables:
+        app.logger.info(f'Dropping jobid_table {jobid_table[0]}')
+        db.session.execute(f"DROP TABLE IF EXISTS {jobid_table[0]}")
+
+    db.session.commit()
     
-    app.logger.info('Initializing database')
-    
-    db.app = app
-    db.init_app(app)
-    db.create_all()
-    db.engine.connect().execute('pragma journal_mode=wal;')
-
-    if config.getboolean('sqlalchemy', 'delete_old_jobs_at_start', fallback=True):
-        jobid_tables = db.session.execute("SELECT name FROM sqlite_master WHERE type='table' and name like 'jobid_%' ORDER BY name").fetchall()
-        for jobid_table in jobid_tables:
-            app.logger.info(f'Dropping jobid_table {jobid_table[0]}')
-            db.session.execute(f"DROP TABLE IF EXISTS {jobid_table[0]}")
-
-        db.session.commit()
 
 
+# ----
+app.logger.info('Clearing stale jobs')
+if config.getboolean('flask', 'clear_stale_jobs_at_start', fallback=True):
+    njobs = QA_db.clear_stale_jobs()  # <-- clear old queued jobs from last session
+    db.session.commit()
+    app.logger.info(f'Deleted {njobs} queued jobs.')
 
-    # ----
-    app.logger.info('Clearing stale jobs')
-    if config.getboolean('flask', 'clear_stale_jobs_at_start', fallback=True):
-        njobs = QA_db.clear_stale_jobs()  # <-- clear old queued jobs from last session
-        db.session.commit()
-        app.logger.info(f'Deleted {njobs} queued jobs.')
+# ----
+app.apimanager = APIManager(app, flask_sqlalchemy_db=db)
 
-    # ----
-    app.apimanager = APIManager(app, flask_sqlalchemy_db=db)
+# Create API endpoints, which will be available at /api/<tablename> by default
+app.apimanager.create_api(Project, methods=['GET', 'POST', 'DELETE', 'PUT'], url_prefix='/api/db',
+                          results_per_page=0, max_results_per_page=0,
+                          preprocessors={'DELETE_SINGLE': [delete_project], 'POST': [check_existing_project]},
+                          postprocessors={'POST': [add_project]})
 
-    # Create API endpoints, which will be available at /api/<tablename> by default
-    app.apimanager.create_api(Project, methods=['GET', 'POST', 'DELETE', 'PUT'], url_prefix='/api/db',
-                       results_per_page=0, max_results_per_page=0,
-                       preprocessors={'DELETE_SINGLE': [delete_project], 'POST': [check_existing_project]},
-                       postprocessors={'POST': [add_project]})
+app.apimanager.create_api(Image, methods=['GET', 'POST', 'DELETE', 'PUT'], url_prefix='/api/db',
+                          results_per_page=0, max_results_per_page=0,)
+app.apimanager.create_api(Roi, methods=['GET', 'POST', 'DELETE', 'PUT'], url_prefix='/api/db',
+                          results_per_page=0, max_results_per_page=0,)
+app.apimanager.create_api(Job, methods=['GET', 'POST', 'DELETE', 'PUT'], url_prefix='/api/db',
+                          results_per_page=0, max_results_per_page=0,)
 
-    app.apimanager.create_api(Image, methods=['GET', 'POST', 'DELETE', 'PUT'], url_prefix='/api/db',
-                       results_per_page=0, max_results_per_page=0,)
-    app.apimanager.create_api(Roi, methods=['GET', 'POST', 'DELETE', 'PUT'], url_prefix='/api/db',
-                       results_per_page=0, max_results_per_page=0,)
-    app.apimanager.create_api(Job, methods=['GET', 'POST', 'DELETE', 'PUT'], url_prefix='/api/db',
-                       results_per_page=0, max_results_per_page=0,)
-
-    app.logger.info('Starting up worker pool.')
-    QA_db._pool = Pool(processes=config.getint('pooling', 'npoolthread', fallback=4))
-    app.run(host='0.0.0.0', port=config.getint('flask', 'port', fallback=5555), debug=config.getboolean('flask', 'debug', fallback = False))
-    QA_db._pool.close()
-    QA_db._pool.join()
+app.logger.info('Starting up worker pool.')
+#QA_db._pool = Pool(processes=config.getint('pooling', 'npoolthread', fallback=4))
+app.run(host='0.0.0.0', port=config.getint('flask', 'port', fallback=5555), debug=config.getboolean('flask', 'debug', fallback = False))
+#QA_db._pool.close()
+#QA_db._pool.join()
